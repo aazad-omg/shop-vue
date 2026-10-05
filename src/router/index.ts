@@ -1,4 +1,4 @@
-import { HomeView, ProfileView } from '@/views'
+import { HomeView, LoginView, ProductDetailView, ProfileView, RegisterView } from '@/views'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
@@ -13,6 +13,21 @@ const router = createRouter({
       path: '/profile',
       name: 'profile',
       component: ProfileView,
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: RegisterView,
+    },
+    {
+      path: '/product/:id',
+      name: 'product-detail',
+      component: ProductDetailView,
     },
   ],
 })
