@@ -1,51 +1,72 @@
 <script setup lang="ts">
-import { BaseButton } from '@/components'
+import { BaseButton, BaseInput } from '@/components'
+import { toTypedSchema } from '@vee-validate/zod'
+import { Form } from 'vee-validate'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import z from 'zod'
 
 const router = useRouter()
 
-const email = ref<string>('')
-const password = ref<string>('')
+const initialValues = {
+  email: '',
+  password: '',
+}
+
 const showPassword = ref<boolean>(false)
 
-const handleSubmit = () => {
-  alert('Registration successful!')
+const onSubmit = (values: Record<string, string>) => {
+  console.log('Form submitted with values:', values)
+  alert('Login validation successful!')
   router.replace('/')
 }
+
+const validationSchema = toTypedSchema(
+  z.object({
+    email: z.email('Invalid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
+  }),
+)
 </script>
 
 <template>
-  <div class="flex flex-col bg-amber-200 min-h-screen py-10 gap-4">
-    <div>SHOPVUE</div>
-    <div><p>Login</p></div>
-    <form @submit.prevent="handleSubmit">
-      <div class="my-2">
-        <label for="Email" class="pr-1">Email</label>
-        <input type="email" id="Email" name="email" v-model="email" class="px-2 border-2" />
-      </div>
-      <div class="my-2">
-        <label for="password" class="pr-1">Password</label>
-        <input
-          :type="showPassword ? 'text' : 'password'"
-          id="password"
-          name="password"
-          v-model="password"
-          class="px-2 mr-1 border-2"
-        />
-        <button @click="showPassword = !showPassword">
+  <div class="mx-auto my-10 flex w-full max-w-md flex-col gap-4 rounded-2xl bg-white p-8 shadow-xl">
+    <div class="text-center text-2xl font-bold tracking-wide text-amber-800">SHOPVUE</div>
+    <div><p class="text-center text-xl font-semibold">Login</p></div>
+    <Form :initial-values="initialValues" :validation-schema="validationSchema" @submit="onSubmit">
+      <BaseInput
+        name="email"
+        label="Email"
+        type="email"
+        placeholder="Enter your email"
+        :validate-on-input="true"
+      />
+
+      <BaseInput
+        name="password"
+        label="Password"
+        :type="showPassword ? 'text' : 'password'"
+        placeholder="Enter your password"
+        :validate-on-input="true"
+      >
+        <button
+          type="button"
+          class="text-sm font-medium text-amber-700 hover:text-amber-900"
+          @click="showPassword = !showPassword"
+        >
           {{ showPassword ? 'Hide' : 'Show' }}
         </button>
-      </div>
-      <div class="flex bg-amber-400 justify-between">
+      </BaseInput>
+
+      <div class="flex justify-between rounded-md bg-amber-100 px-3 py-2 text-sm">
         <div>Remember me</div>
         <div>Forgot password?</div>
       </div>
-      <div>
-        <BaseButton type="submit">Login Button</BaseButton>
+      <div class="mt-2 flex justify-center pt-2">
+        <BaseButton type="submit">Login</BaseButton>
       </div>
-      <div>--------------or---------------</div>
-      <div class="flex gap-1">
+      <div class="my-4 text-center text-sm text-gray-400">--------------or---------------</div>
+      <div class="flex justify-center gap-1 text-sm">
         Dont have an account?
         <span
           ><RouterLink to="/register"
@@ -53,11 +74,6 @@ const handleSubmit = () => {
           ></span
         >
       </div>
-      <div>
-        <p>Display section</p>
-        <div>Email:{{ email }}</div>
-        <div>Password:{{ password }}</div>
-      </div>
-    </form>
+    </Form>
   </div>
 </template>
