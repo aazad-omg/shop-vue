@@ -1,1 +1,5 @@
 @import 'tailwindcss';
+
+@theme {
+  --color-brand: #2a3a5e;
+}

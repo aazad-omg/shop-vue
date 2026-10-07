@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { BaseButton } from '@/components'
+import { BaseButton, ProductBanner, ProductCard } from '@/components'
+import type { Product } from '@/types'
 import { ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
@@ -15,10 +16,11 @@ const categories = ref<string[]>([
   'Seasonal markdowns',
 ])
 
-const products = ref([
+const products = ref<Product[]>([
   {
     id: 1,
     name: 'Ceramic Mug',
+    slug: 'ceramic-mug',
     subtitle: 'Handcrafted',
     price: 24,
     description: 'A cozy ceramic mug designed for warm drinks and slower mornings.',
@@ -28,6 +30,7 @@ const products = ref([
   {
     id: 2,
     name: 'Desk Lamp',
+    slug: 'desk-lamp',
     subtitle: 'Minimal design',
     price: 39,
     description: 'Soft ambient lighting for productive evenings and cozy corners.',
@@ -37,6 +40,7 @@ const products = ref([
   {
     id: 3,
     name: 'Leather Tote',
+    slug: 'leather-tote',
     subtitle: 'Everyday carry',
     price: 58,
     description: 'A structured tote made for commute days, markets, and weekend travel.',
@@ -46,6 +50,7 @@ const products = ref([
   {
     id: 4,
     name: 'Bluetooth Speaker',
+    slug: 'bluetooth-speaker',
     subtitle: 'Portable sound',
     price: 69,
     description: 'Clear audio in a compact body for your desk, patio, and playlists.',
@@ -55,6 +60,7 @@ const products = ref([
   {
     id: 5,
     name: 'Travel Backpack',
+    slug: 'travel-backpack',
     subtitle: 'Adventure ready',
     price: 82,
     description: 'Comfortable storage for quick getaways and busy city days alike.',
@@ -64,6 +70,7 @@ const products = ref([
   {
     id: 6,
     name: 'Notebook Set',
+    slug: 'notebook-set',
     subtitle: 'Paper goods',
     price: 18,
     description: 'Soft-touch pages and sturdy covers for jotting ideas and planning ahead.',
@@ -73,6 +80,7 @@ const products = ref([
   {
     id: 7,
     name: 'Throw Blanket',
+    slug: 'throw-blanket',
     subtitle: 'Warm textures',
     price: 44,
     description: 'A lightweight layer for reading corners, movie nights, and chilly mornings.',
@@ -82,6 +90,7 @@ const products = ref([
   {
     id: 8,
     name: 'Wireless Headphones',
+    slug: 'wireless-headphones',
     subtitle: 'Immersive audio',
     price: 95,
     description: 'Comfortable, all-day listening with a sleek finish and deep bass.',
@@ -91,6 +100,7 @@ const products = ref([
   {
     id: 9,
     name: 'Thermos Bottle',
+    slug: 'thermos-bottle',
     subtitle: 'Everyday essential',
     price: 32,
     description: 'Keeps drinks warm and ready through long days, commutes, and hikes.',
@@ -100,6 +110,7 @@ const products = ref([
   {
     id: 10,
     name: 'Candle Trio',
+    slug: 'candle-trio',
     subtitle: 'Home ambiance',
     price: 27,
     description: 'Three layered scents to soften a room and elevate a quiet evening.',
@@ -121,56 +132,45 @@ const handleLogout = () => {
 <template>
   <!-- Root div -->
   <div class="min-h-screen bg-amber-50 justify-center items-center">
-    <div>
-      <nav class="flex justify-around items-center bg-blue-200 py-2">
-        <div>Logo</div>
-        <div>Search</div>
-        <RouterLink to="/profile">
-          <BaseButton> <div>Profile Icon</div> </BaseButton>
-        </RouterLink>
+    <nav
+      class="sticky top-0 z-50 w-full flex justify-around items-center bg-brand py-2 text-white font-semibold"
+    >
+      <div>Logo placeholder</div>
+      <div>Search</div>
+      <RouterLink to="/profile">
+        <BaseButton> <div>Profile Icon</div> </BaseButton>
+      </RouterLink>
 
-        <div>Cart Icon</div>
+      <div>Cart Icon</div>
 
-        <BaseButton @click="handleLogout">Log out</BaseButton>
-      </nav>
-    </div>
+      <BaseButton @click="handleLogout">Log out</BaseButton>
+    </nav>
     <!-- Category Navigation -->
-    <nav>
+    <nav class="border-b border-gray-200 shadow-sm">
       <ul class="grid grid-cols-2 gap-4 list-none sm:grid-cols-4 lg:grid-cols-8 justify-center">
         <li
           v-for="(category, index) in categories"
           :key="index"
-          class="border-2 bg-red-300 text-center"
+          class="py-4 text-center transition-all duration-300 ease-out hover:cursor-pointer hover:translate-y-0.5 hover:text-brand"
         >
           <p>{{ category }}</p>
         </li>
       </ul>
     </nav>
 
+    <div>
+      <ProductBanner />
+    </div>
+
     <div class="mt-8 px-4">
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <RouterLink
-          v-for="product in products"
+          v-for="product in products.slice(0, 9)"
           :key="product.id"
-          :to="`/product/${product.id}`"
-          class="hover:cursor-pointer"
+          :to="`/product/${product.slug}`"
+          class="block transition-all duration-200 ease-out hover:-translate-y-1 hover:cursor-pointer"
         >
-          <div class="mx-auto max-w-xs overflow-hidden rounded-2xl bg-white shadow-lg">
-            <img :src="product.image" :alt="product.name" class="h-56 w-full object-cover" />
-            <div class="p-4">
-              <div class="flex items-start justify-between gap-3">
-                <div>
-                  <h2 class="text-lg font-semibold text-gray-800">{{ product.name }}</h2>
-                  <p class="text-sm text-gray-500">{{ product.subtitle }}</p>
-                </div>
-                <span class="text-lg font-bold text-amber-700">${{ product.price }}</span>
-              </div>
-              <p class="mt-3 text-sm text-gray-600">{{ product.description }}</p>
-              <BaseButton class="mt-4 w-full" @click.stop.prevent="addToCart"
-                >Add to cart</BaseButton
-              >
-            </div>
-          </div>
+          <ProductCard :product="product" :add-to-cart="addToCart" />
         </RouterLink>
       </div>
     </div>

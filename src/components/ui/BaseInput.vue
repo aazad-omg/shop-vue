@@ -27,11 +27,11 @@ const props = withDefaults(
           class="flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-200"
         >
           <Field
-            :name="name"
+            :name
             :id="name"
-            :type="type"
-            :placeholder="props.placeholder"
-            :label="label"
+            :type
+            :placeholder
+            :label
             :validate-on-input="validateOnInput"
             class="w-full outline-none"
           />
