@@ -1,83 +1,112 @@
 <script setup lang="ts">
-import { BaseButton, BaseInput } from '@/components'
-import { Eye, EyeOff } from '@lucide/vue'
-import { toTypedSchema } from '@vee-validate/zod'
-import { Field, Form } from 'vee-validate'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { supabase } from '@/supabase'
 import { useRouter } from 'vue-router'
-import z from 'zod'
+import useVuelidate from '@vuelidate/core'
+import { Button, InputGroup, InputGroupAddon, InputGroupInput, Label } from '@/components'
+import { Eye, EyeOff } from '@lucide/vue'
+import { email as emailValidator, minLength, required } from '@vuelidate/validators'
 
 const router = useRouter()
 
-const initialValues = {
-  email: '',
-  password: '',
-  rememberMe: true,
-}
-
+const email = ref<string>('')
+const password = ref<string>('')
 const showPassword = ref<boolean>(false)
 
-const onSubmit = (values: Record<string, string>) => {
-  console.log('Form submitted with values:', values)
-  alert('Login validation successful!')
-  router.replace('/')
-}
+const rules = computed(() => ({
+  email: {
+    required,
+    email: emailValidator,
+  },
+  password: {
+    required,
+    minLength: minLength(6),
+  },
+}))
 
-const validationSchema = toTypedSchema(
-  z.object({
-    email: z.string().email('Invalid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
-    rememberMe: z.boolean(),
-  }),
-)
+const v$ = useVuelidate(rules, { email, password })
+
+const onSubmit = async () => {
+  const isValid = await v$.value.$validate()
+  console.log('$validate resolved:', isValid)
+  console.log('v$', v$)
+  if (!isValid) return
+  console.log('success form submit')
+  try {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.value,
+      password: password.value,
+    })
+    if (error) throw error
+    router.replace('/')
+  } catch (error: unknown) {
+    alert(error instanceof Error ? error.message : 'Registration failed')
+  }
+}
 </script>
 
 <template>
   <div class="mx-auto my-10 flex w-full max-w-md flex-col gap-4 rounded-2xl bg-white p-8 shadow-xl">
     <div class="text-center text-2xl font-bold tracking-wide text-amber-800">SHOPVUE</div>
     <div><p class="text-center text-xl font-semibold">Login</p></div>
+    <form novalidate @submit.prevent="onSubmit">
+      <div class="mb-4">
+        <Label for="email" class="py-2 text-md">Email</Label>
 
-    <Form :initial-values="initialValues" :validation-schema="validationSchema" @submit="onSubmit">
-      <BaseInput
-        name="email"
-        label="Email"
-        type="email"
-        placeholder="Enter your email"
-        :validate-on-input="true"
-      />
-
-      <BaseInput
-        name="password"
-        label="Password"
-        :type="showPassword ? 'text' : 'password'"
-        placeholder="Enter your password"
-        :validate-on-input="true"
-      >
-        <button
-          type="button"
-          class="text-sm font-medium text-amber-700 hover:text-amber-900 hover:cursor-pointer"
-          @click="showPassword = !showPassword"
+        <InputGroup
+          class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30 text-base"
         >
-          <Eye v-if="!showPassword" color="black" />
-          <EyeOff v-if="showPassword" color="black" />
-        </button>
-      </BaseInput>
-
-      <div class="flex justify-between rounded-md bg-amber-100 px-3 py-2 text-md">
-        <label>
-          <Field
-            name="rememberMe"
-            as="input"
-            type="checkbox"
-            :value="true"
-            :unchecked-value="false"
+          <InputGroupInput
+            id="email"
+            name="email"
+            v-model.trim="v$.email.$model"
+            type="email"
+            placeholder="Enter your email"
+            data-slot="input-group-control"
+            :aria-invalid="v$.email.$error"
           />
-          Remember me
-        </label>
-        <div>Forgot password?</div>
+        </InputGroup>
+        <p class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
+          {{ v$.email.$error ? v$.email.$errors[0]?.$message : '' }}
+        </p>
       </div>
+
+      <div class="mb-4">
+        <Label for="password" class="py-2 text-md">Password</Label>
+
+        <InputGroup
+          class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
+        >
+          <InputGroupInput
+            id="password"
+            name="password"
+            v-model="v$.password.$model"
+            :type="showPassword ? 'text' : 'password'"
+            placeholder="Enter your password"
+            data-slot="input-group-control"
+            :aria-invalid="v$.password.$error"
+          />
+          <InputGroupAddon align="inline-end">
+            <button
+              type="button"
+              :aria-label="showPassword ? 'Hide password' : 'Show password'"
+              :aria-pressed="showPassword"
+              @click="showPassword = !showPassword"
+            >
+              <Eye v-if="!showPassword" />
+              <EyeOff v-else />
+            </button>
+          </InputGroupAddon>
+        </InputGroup>
+        <p class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
+          {{ v$.password.$error ? v$.password.$errors[0]?.$message : '' }}
+        </p>
+      </div>
+
       <div class="mt-2 flex justify-center pt-2">
-        <BaseButton type="submit">Login</BaseButton>
+        <Button type="submit" class="transition-transform active:scale-[0.85] hover:cursor-pointer"
+          >Login</Button
+        >
       </div>
       <div class="my-4 text-center text-sm text-gray-400">--------------or---------------</div>
       <div class="flex justify-center gap-1 text-md">
@@ -88,6 +117,6 @@ const validationSchema = toTypedSchema(
           ></span
         >
       </div>
-    </Form>
+    </form>
   </div>
 </template>
