@@ -6,7 +6,7 @@ import { supabase } from '@/supabase'
 import { useRouter } from 'vue-router'
 import { email as emailValidator, minLength, sameAs } from '@vuelidate/validators'
 import { Button } from '@/components/ui/button'
-import { InputGroup, InputGroupAddon, InputGroupInput, Label } from '@/components'
+import { InputGroup, InputGroupAddon, InputGroupInput, Label, Spinner } from '@/components'
 import { Eye, EyeOff } from '@lucide/vue'
 
 const router = useRouter()
@@ -18,11 +18,12 @@ const confirmPassword = ref<string>('')
 
 const showPassword = ref<boolean>(false)
 const showConfirmPassword = ref<boolean>(false)
+const isLoading = ref<boolean>(false)
 
 const rules = computed(() => ({
   name: {
     required: true,
-    minLength: 2,
+    minLength: minLength(2),
   },
   email: {
     required: true,
@@ -43,6 +44,7 @@ const v$ = useVuelidate(rules, { name, email, password, confirmPassword })
 const onSubmit = async () => {
   const isValid = await v$.value.$validate()
   if (!isValid) return
+  isLoading.value = true
 
   try {
     const { error } = await supabase.auth.signUp({
@@ -58,6 +60,8 @@ const onSubmit = async () => {
     router.push('/login')
   } catch (error: unknown) {
     alert(error instanceof Error ? error.message : 'Registration failed')
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
@@ -175,9 +179,14 @@ const onSubmit = async () => {
       </div>
 
       <div class="mt-2 flex justify-center pt-2">
-        <Button type="submit" class="transition-transform duration-100 active:scale-[0.98]"
-          >Register</Button
+        <Button
+          type="submit"
+          :disabled="isLoading"
+          class="transition-transform active:scale-[0.85] hover:cursor-pointer"
         >
+          <Spinner v-if="isLoading" class="size-4" />
+          {{ isLoading ? 'Logging in…' : 'Login' }}
+        </Button>
       </div>
 
       <div class="flex justify-center items-center mt-4 text-center text-md text-gray-400">

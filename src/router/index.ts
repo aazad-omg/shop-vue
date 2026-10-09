@@ -1,4 +1,11 @@
-import { HomeView, LoginView, ProductDetailView, ProfileView, RegisterView } from '@/views'
+import {
+  CartView,
+  HomeView,
+  LoginView,
+  ProductDetailView,
+  ProfileView,
+  RegisterView,
+} from '@/views'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
@@ -28,6 +35,12 @@ const router = createRouter({
       path: '/product/:name',
       name: 'product-detail',
       component: ProductDetailView,
+    },
+
+    {
+      path: '/cart',
+      name: 'cart',
+      component: CartView,
     },
   ],
 })
