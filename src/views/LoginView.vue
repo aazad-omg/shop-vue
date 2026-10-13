@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { supabase } from '@/supabase'
 import { useRouter } from 'vue-router'
 import useVuelidate from '@vuelidate/core'
-import { Button, InputGroup, InputGroupAddon, InputGroupInput, Label } from '@/components'
+import { Button, InputGroup, InputGroupAddon, InputGroupInput, Label, Spinner } from '@/components'
 import { Eye, EyeOff } from '@lucide/vue'
 import { email as emailValidator, minLength, required } from '@vuelidate/validators'
 
@@ -12,6 +12,7 @@ const router = useRouter()
 const email = ref<string>('')
 const password = ref<string>('')
 const showPassword = ref<boolean>(false)
+const isLoading = ref<boolean>(false)
 
 const rules = computed(() => ({
   email: {
@@ -28,10 +29,10 @@ const v$ = useVuelidate(rules, { email, password })
 
 const onSubmit = async () => {
   const isValid = await v$.value.$validate()
-  console.log('$validate resolved:', isValid)
-  console.log('v$', v$)
+
   if (!isValid) return
-  console.log('success form submit')
+  isLoading.value = true
+
   try {
     const { error } = await supabase.auth.signInWithPassword({
       email: email.value,
@@ -41,6 +42,8 @@ const onSubmit = async () => {
     router.replace('/')
   } catch (error: unknown) {
     alert(error instanceof Error ? error.message : 'Registration failed')
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
@@ -104,9 +107,14 @@ const onSubmit = async () => {
       </div>
 
       <div class="mt-2 flex justify-center pt-2">
-        <Button type="submit" class="transition-transform active:scale-[0.85] hover:cursor-pointer"
-          >Login</Button
+        <Button
+          type="submit"
+          :disabled="isLoading"
+          class="transition-transform active:scale-[0.85] hover:cursor-pointer"
         >
+          <Spinner v-if="isLoading" class="size-4" />
+          {{ isLoading ? 'Logging in…' : 'Login' }}
+        </Button>
       </div>
       <div class="my-4 text-center text-sm text-gray-400">--------------or---------------</div>
       <div class="flex justify-center gap-1 text-md">
