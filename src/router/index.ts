@@ -2,6 +2,7 @@ import {
   CartView,
   HomeView,
   LoginView,
+  NotFoundView,
   ProductDetailView,
   ProfileView,
   RegisterView,
@@ -41,6 +42,11 @@ const router = createRouter({
       path: '/cart',
       name: 'cart',
       component: CartView,
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'NotFound',
+      component: NotFoundView,
     },
   ],
 })
