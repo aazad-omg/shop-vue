@@ -1,0 +1,133 @@
+<script setup lang="ts">
+import { nextTick, ref, onMounted, onUnmounted } from 'vue'
+
+const props = defineProps<{
+  src: string
+  alt: string
+}>()
+
+// Provided type null to refs incase the element is not available yet
+const imageRef = ref<HTMLImageElement | null>(null)
+const lensRef = ref<HTMLDivElement | null>(null)
+const resultRef = ref<HTMLDivElement | null>(null)
+
+const isZooming = ref(false)
+
+let zoomX = 1
+let zoomY = 1
+
+function moveLens(event: MouseEvent) {
+  const image = imageRef.value
+  const lens = lensRef.value
+  const result = resultRef.value
+
+  if (!image || !lens || !result) return
+
+  // Ask the browser, the image's positions on the screen and its size
+  const rect = image.getBoundingClientRect()
+
+  // Cursor coordinates relative to the displayed image
+  // Find the elements and the cursor's position
+  let x = event.clientX - rect.left
+  let y = event.clientY - rect.top
+
+  // Center the lens around the cursor
+  x -= lens.offsetWidth / 2
+  y -= lens.offsetHeight / 2
+
+  // Keep the lens inside the image -- Box in the lens
+  x = Math.max(0, Math.min(x, rect.width - lens.offsetWidth))
+  y = Math.max(0, Math.min(y, rect.height - lens.offsetHeight))
+
+  // Move the lens
+  lens.style.left = `${x}px`
+  lens.style.top = `${y}px`
+
+  // Align the magnified background with the lens
+  //  Update the magnified view
+  result.style.backgroundPosition = `-${x * zoomX}px -${y * zoomY}px`
+}
+
+function setupZoom() {
+  // To use template refs
+  const image = imageRef.value
+  const lens = lensRef.value
+  const result = resultRef.value
+
+  // Check for null element
+  if (!image || !lens || !result) return
+
+  const lensWidth = lens.offsetWidth
+  const lensHeight = lens.offsetHeight
+  const resultWidth = result.offsetWidth
+  const resultHeight = result.offsetHeight
+
+  // Ensure that lens and zoom panel have valid dimensions before continuing
+  if (!lensWidth || !lensHeight || !resultWidth || !resultHeight) return
+
+  // Calculate X & Y zoom based on image vs zoom view sizes
+  zoomX = resultWidth / lensWidth
+  zoomY = resultHeight / lensHeight
+
+  result.style.backgroundImage = `url("${props.src}")`
+  result.style.backgroundSize = `${image.clientWidth * zoomX}px ${image.clientHeight * zoomY}px`
+}
+
+async function showZoom() {
+  isZooming.value = true
+  // Continue only after vue has finished updating the DOM
+  await nextTick()
+  setupZoom()
+}
+
+onMounted(() => {
+  const image = imageRef.value
+  if (!image) return
+
+  if (image.complete && image.naturalWidth > 0) {
+    setupZoom()
+  } else {
+    image.addEventListener('load', setupZoom)
+  }
+})
+
+// Cleanup function
+onUnmounted(() => {
+  imageRef.value?.removeEventListener('load', setupZoom)
+})
+</script>
+
+<template>
+  <div class="relative z-50 flex gap-4">
+    <div
+      class="relative h-87.5 w-87.5 shrink-0 cursor-crosshair"
+      @mouseenter="showZoom"
+      @mouseleave="isZooming = false"
+      @mousemove="moveLens"
+    >
+      <!-- Providing the refs here allows JS to access the elements: HTMLImageElement -->
+      <!-- and its associated properties such as naturalWidth,clientWidth and complete -->
+      <img
+        ref="imageRef"
+        :src="props.src"
+        :alt="props.alt"
+        class="block h-full w-full object-fill"
+      />
+
+      <!-- Providing the refs here allows JS to access the elements: HTMLDivElement -->
+      <!-- and its associated properties such as offsetWidth, offsetHeight and style -->
+
+      <div
+        v-show="isZooming"
+        ref="lensRef"
+        class="pointer-events-none absolute h-25 w-25 border border-[#888] bg-white/25"
+      />
+    </div>
+
+    <div
+      v-show="isZooming"
+      ref="resultRef"
+      class="absolute top-0 left-full z-50 h-150 w-150 shrink-0 bg-no-repeat"
+    />
+  </div>
+</template>

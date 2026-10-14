@@ -1,14 +1,18 @@
 <script setup lang="ts">
-import { AppNavbar } from '@/components'
-import { products } from '@/data/products'
-import { computed } from 'vue'
+import { AppNavbar, ProductImageZoom } from '@/components'
+import { PRODUCTS } from '@/data/products'
+import type { Product } from '@/types'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 
+const products = ref<Product[]>([])
+products.value = PRODUCTS
+
 // Find the product name from the slug
 const currentProduct = computed(() =>
-  products.find((product) => product.slug === String(route.params.name ?? '')),
+  products.value.find((product) => product.slug === String(route.params.name ?? '')),
 )
 
 const addToCart = () => {
@@ -20,12 +24,14 @@ const addToCart = () => {
   <div class="min-h-screen w-full bg-amber-50">
     <AppNavbar :products="products" :initial-product="currentProduct" />
     <main class="w-full max-w-7xl py-8 pl-6 pr-4 sm:py-12 sm:pl-8 lg:ml-24">
-      <section v-if="currentProduct" class="grid gap-8 lg:grid-cols-2 lg:gap-14">
-        <img
+      <section v-if="currentProduct" class="grid gap-8 lg:grid-cols-3 lg:gap-14">
+        <!-- <img
           :src="currentProduct.image"
           :alt="currentProduct.name"
           class="aspect-4/3 w-full rounded-md object-cover"
-        />
+        /> -->
+
+        <ProductImageZoom :src="currentProduct.image" :alt="currentProduct.name" />
 
         <div class="py-2">
           <p class="text-sm font-semibold text-amber-800">{{ currentProduct.subtitle }}</p>
