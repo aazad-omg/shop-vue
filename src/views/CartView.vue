@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { AppNavbar, BaseButton } from '@/components'
-import { products } from '@/data/products'
+import { PRODUCTS } from '@/data/products'
+import type { Product } from '@/types'
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 const name = ref<string>('aazad')
+const products = ref<Product[]>([])
+products.value = PRODUCTS
 </script>
 
 <template>

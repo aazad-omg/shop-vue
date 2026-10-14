@@ -17,3 +17,7 @@ Concepts learnt and implemented
 - Tailwind CSS for utility-first styling
 - shadcn-vue for customizable UI components
 - Lucide icons with lucide-vue-next
+
+Second Catchup
+
+- nextTick() -> wait for vue to update the DOM, then continue

@@ -1,20 +1,29 @@
 <script setup lang="ts">
 import { AppNavbar, ProductCard } from '@/components'
-import { products } from '@/data/products'
-import { ref } from 'vue'
+import { PRODUCTS } from '@/data/products'
+import type { Product } from '@/types'
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 const categories = ref<string[]>([
   'All goods',
   'Kitchen',
   'Home',
+  'Accessories',
   'Audio & Tech',
   'Travel',
   'Outdoors',
   'Stationery',
   'Seasonal markdowns',
 ])
-
+const products = ref<Product[]>([])
+products.value = PRODUCTS
+const selectedCategory = ref('All goods')
+const filteredProducts = computed(() =>
+  selectedCategory.value === 'All goods'
+    ? products.value
+    : products.value.filter((product) => product.categories.includes(selectedCategory.value)),
+)
 const addToCart = () => {
   alert('Item added to cart!')
 }
@@ -27,14 +36,22 @@ const addToCart = () => {
     <!-- Category Navigation -->
     <nav aria-label="Product categories" class="border-b border-stone-200 bg-white">
       <ul
-        class="mx-auto grid max-w-7xl list-none grid-cols-2 justify-center gap-x-4 px-4 sm:grid-cols-4 sm:px-6 lg:grid-cols-8"
+        class="mx-auto grid max-w-7xl list-none grid-cols-2 justify-center gap-x-4 px-4 sm:grid-cols-4 sm:px-6 lg:grid-cols-9"
       >
-        <li
-          v-for="(category, index) in categories"
-          :key="index"
-          class="border-b-2 border-transparent py-3 text-center text-sm font-medium text-stone-600 transition-colors duration-200 hover:cursor-pointer hover:border-brand hover:text-brand"
-        >
-          <p>{{ category }}</p>
+        <li v-for="category in categories" :key="category">
+          <button
+            type="button"
+            class="w-full border-b-2 px-2 py-3 text-center text-sm font-medium transition-colors duration-200"
+            :class="
+              selectedCategory === category
+                ? 'border-brand text-brand'
+                : 'border-transparent text-stone-600 hover:border-brand hover:text-brand'
+            "
+            :aria-pressed="selectedCategory === category"
+            @click="selectedCategory = category"
+          >
+            {{ category }}
+          </button>
         </li>
       </ul>
     </nav>
@@ -45,7 +62,7 @@ const addToCart = () => {
       <div class="mt-8">
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <RouterLink
-            v-for="product in products"
+            v-for="product in filteredProducts"
             :key="product.id"
             :to="`/product/${product.slug}`"
             class="block transition-all duration-200 ease-out hover:-translate-y-1 hover:cursor-pointer"
@@ -53,6 +70,10 @@ const addToCart = () => {
             <ProductCard :product="product" :add-to-cart="addToCart" />
           </RouterLink>
         </div>
+
+        <p v-if="filteredProducts.length === 0" class="py-16 text-center text-stone-600">
+          No products in this category yet.
+        </p>
       </div>
     </main>
   </div>

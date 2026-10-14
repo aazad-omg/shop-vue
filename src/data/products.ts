@@ -1,11 +1,12 @@
 import type { Product } from '@/types'
 
-export const products: Product[] = [
+export const PRODUCTS: Product[] = [
   {
     id: 1,
     name: 'Ceramic Mug',
     slug: 'ceramic-mug',
     subtitle: 'Handcrafted',
+    categories: ['Kitchen'],
     price: 24,
     description: 'A cozy ceramic mug designed for warm drinks and slower mornings.',
     image:
@@ -16,6 +17,7 @@ export const products: Product[] = [
     name: 'Desk Lamp',
     slug: 'desk-lamp',
     subtitle: 'Minimal design',
+    categories: ['Home'],
     price: 39,
     description: 'Soft ambient lighting for productive evenings and cozy corners.',
     image:
@@ -26,6 +28,7 @@ export const products: Product[] = [
     name: 'Leather Tote',
     slug: 'leather-tote',
     subtitle: 'Everyday carry',
+    categories: ['Accessories', 'Travel'],
     price: 58,
     description: 'A structured tote made for commute days, markets, and weekend travel.',
     image:
@@ -36,6 +39,7 @@ export const products: Product[] = [
     name: 'Bluetooth Speaker',
     slug: 'bluetooth-speaker',
     subtitle: 'Portable sound',
+    categories: ['Audio & Tech'],
     price: 69,
     description: 'Clear audio in a compact body for your desk, patio, and playlists.',
     image:
@@ -46,6 +50,7 @@ export const products: Product[] = [
     name: 'Travel Backpack',
     slug: 'travel-backpack',
     subtitle: 'Adventure ready',
+    categories: ['Travel', 'Outdoors'],
     price: 82,
     description: 'Comfortable storage for quick getaways and busy city days alike.',
     image:
@@ -56,6 +61,7 @@ export const products: Product[] = [
     name: 'Notebook Set',
     slug: 'notebook-set',
     subtitle: 'Paper goods',
+    categories: ['Stationery'],
     price: 18,
     description: 'Soft-touch pages and sturdy covers for jotting ideas and planning ahead.',
     image:
@@ -66,6 +72,7 @@ export const products: Product[] = [
     name: 'Throw Blanket',
     slug: 'throw-blanket',
     subtitle: 'Warm textures',
+    categories: ['Home', 'Outdoors'],
     price: 44,
     description: 'A lightweight layer for reading corners, movie nights, and chilly mornings.',
     image:
@@ -76,6 +83,7 @@ export const products: Product[] = [
     name: 'Wireless Headphones',
     slug: 'wireless-headphones',
     subtitle: 'Immersive audio',
+    categories: ['Audio & Tech'],
     price: 95,
     description: 'Comfortable, all-day listening with a sleek finish and deep bass.',
     image:
@@ -86,6 +94,7 @@ export const products: Product[] = [
     name: 'Thermos Bottle',
     slug: 'thermos-bottle',
     subtitle: 'Everyday essential',
+    categories: ['Kitchen', 'Outdoors'],
     price: 32,
     description: 'Keeps drinks warm and ready through long days, commutes, and hikes.',
     image:
@@ -96,6 +105,7 @@ export const products: Product[] = [
     name: 'Candle Trio',
     slug: 'candle-trio',
     subtitle: 'Home ambiance',
+    categories: ['Home'],
     price: 27,
     description: 'Three layered scents to soften a room and elevate a quiet evening.',
     image:
