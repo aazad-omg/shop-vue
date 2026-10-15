@@ -8,6 +8,16 @@
 
 @theme {
   --color-brand: #2a3a5e;
+  --color-brand-100: #e9ecf2;
+  --color-brand-200: #cbd1df;
+  --color-brand-300: #adb6cc;
+  --color-brand-400: #8f9bb9;
+  --color-brand-500: #7180a6;
+  --color-brand-600: #59698f;
+  --color-brand-700: #465575;
+  --color-brand-800: #394765;
+  --color-brand-900: #303f5e;
+  --color-brand-1000: #1e2942;
 }
 
 @theme inline {

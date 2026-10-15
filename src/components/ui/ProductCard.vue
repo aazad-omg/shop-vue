@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Product } from '@/types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card'
+import { NepaliRupee } from '@lucide/vue'
 
 type Props = {
   product: Product
@@ -16,6 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
     subtitle: '',
     price: 0,
     description: '',
+    categories: [],
   }),
 })
 </script>
@@ -47,7 +49,10 @@ const props = withDefaults(defineProps<Props>(), {
       <p class="text-sm text-gray-600">{{ props.product.description }}</p>
       <div class="mt-3 flex items-center justify-between">
         <p class="text-sm text-amber-500" role="img" aria-label="Rating">⭐</p>
-        <p class="text-lg font-bold text-amber-700">${{ props.product.price.toFixed(2) }}</p>
+        <p class="flex items-center text-lg font-bold text-brand">
+          <NepaliRupee :size="17" color="#2a3a5e" :stroke-width="2.75" />
+          <span class="pl-0.5">{{ props.product.price.toFixed(2) }}</span>
+        </p>
       </div>
     </CardContent>
   </Card>

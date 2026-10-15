@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+import { RouterLink } from 'vue-router'
+
 import { AppNavbar, ProductCard } from '@/components'
 import { PRODUCTS } from '@/data/products'
 import type { Product } from '@/types'
-import { computed, ref } from 'vue'
-import { RouterLink } from 'vue-router'
 
 const categories = ref<string[]>([
   'All goods',
@@ -34,18 +35,18 @@ const addToCart = () => {
   <div class="min-h-screen w-full bg-amber-50">
     <AppNavbar :products="products" />
     <!-- Category Navigation -->
-    <nav aria-label="Product categories" class="border-b border-stone-200 bg-white">
+    <nav aria-label="Product categories" class="border-b border-stone-200">
       <ul
         class="mx-auto grid max-w-7xl list-none grid-cols-2 justify-center gap-x-4 px-4 sm:grid-cols-4 sm:px-6 lg:grid-cols-9"
       >
         <li v-for="category in categories" :key="category">
           <button
             type="button"
-            class="w-full border-b-2 px-2 py-3 text-center text-sm font-medium transition-colors duration-200"
+            class="h-full w-full border-b-5 px-2 py-1.5 text-center text-lg font-medium transition-colors duration-200"
             :class="
               selectedCategory === category
                 ? 'border-brand text-brand'
-                : 'border-transparent text-stone-600 hover:border-brand hover:text-brand'
+                : 'border-transparent text-stone-600 hover:border-brand-300 hover:text-brand'
             "
             :aria-pressed="selectedCategory === category"
             @click="selectedCategory = category"

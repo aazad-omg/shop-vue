@@ -16,7 +16,7 @@ const isZooming = ref(false)
 let zoomX = 1
 let zoomY = 1
 
-function moveLens(event: MouseEvent) {
+const moveLens = (event: MouseEvent) => {
   const image = imageRef.value
   const lens = lensRef.value
   const result = resultRef.value
@@ -48,7 +48,7 @@ function moveLens(event: MouseEvent) {
   result.style.backgroundPosition = `-${x * zoomX}px -${y * zoomY}px`
 }
 
-function setupZoom() {
+const setupZoom = () => {
   // To use template refs
   const image = imageRef.value
   const lens = lensRef.value
@@ -73,7 +73,7 @@ function setupZoom() {
   result.style.backgroundSize = `${image.clientWidth * zoomX}px ${image.clientHeight * zoomY}px`
 }
 
-async function showZoom() {
+const showZoom = async () => {
   isZooming.value = true
   // Continue only after vue has finished updating the DOM
   await nextTick()
@@ -98,9 +98,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="relative z-50 flex gap-4">
+  <div class="relative z-50 flex gap-4 items-center">
     <div
-      class="relative h-87.5 w-87.5 shrink-0 cursor-crosshair"
+      class="relative h-[90%] w-[90%] shrink-0 cursor-crosshair"
       @mouseenter="showZoom"
       @mouseleave="isZooming = false"
       @mousemove="moveLens"
@@ -120,14 +120,14 @@ onUnmounted(() => {
       <div
         v-show="isZooming"
         ref="lensRef"
-        class="pointer-events-none absolute h-25 w-25 border border-[#888] bg-white/25"
+        class="pointer-events-none absolute h-25 w-25 border border-[#888] bg-blue-500/25"
       />
     </div>
 
     <div
       v-show="isZooming"
       ref="resultRef"
-      class="absolute top-0 left-full z-50 h-150 w-150 shrink-0 bg-no-repeat"
+      class="absolute top-0 left-full z-50 h-140 w-160 shrink-0 bg-no-repeat"
     />
   </div>
 </template>
