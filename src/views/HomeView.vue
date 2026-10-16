@@ -5,6 +5,7 @@ import { RouterLink } from 'vue-router'
 import { AppNavbar, ProductCard } from '@/components'
 import { PRODUCTS } from '@/data/products'
 import type { Product } from '@/types'
+import { useCartStore } from '@/stores'
 
 const categories = ref<string[]>([
   'All goods',
@@ -25,8 +26,12 @@ const filteredProducts = computed(() =>
     ? products.value
     : products.value.filter((product) => product.categories.includes(selectedCategory.value)),
 )
-const addToCart = () => {
-  alert('Item added to cart!')
+
+const cart = useCartStore()
+
+const addCurrentProductToCart = (product: Product) => {
+  cart.addToCart(product, 1)
+  cart.openDrawer()
 }
 </script>
 
@@ -68,7 +73,7 @@ const addToCart = () => {
             :to="`/product/${product.slug}`"
             class="block transition-all duration-200 ease-out hover:-translate-y-1 hover:cursor-pointer"
           >
-            <ProductCard :product="product" :add-to-cart="addToCart" />
+            <ProductCard :product="product" :add-to-cart="() => addCurrentProductToCart(product)" />
           </RouterLink>
         </div>
 

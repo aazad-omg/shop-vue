@@ -13,10 +13,14 @@ type CartItem = {
 export const useCartStore = defineStore('cart', () => {
   // items: the cart’s state, containing each product and its quantity.
   const items = ref<CartItem[]>([])
+  const isDrawerOpen = ref(false)
 
   // itemCount: a getter that totals the quantities across all cart lines,
   //            for a navbar badge.
-  const itemCount = computed(() => items.value.reduce((total, item) => total + item.quantity, 0))
+  // const itemCount = computed(() => items.value.reduce((total, item) => total + item.quantity, 0))
+
+  // Use only the number of different items
+  const itemCount = computed(() => items.value.length)
 
   // subtotal: a getter that adds up each product’s price multiplied by its
   //           quantity.
@@ -36,5 +40,33 @@ export const useCartStore = defineStore('cart', () => {
     else items.value.push({ product, quantity })
   }
 
-  return { items, itemCount, subTotal, addToCart }
+  // Find matching cart item and updates quantity
+  const updateQuantity = (productId: number, quantity: number) => {
+    const item = items.value.find((cartItem) => cartItem.product.id === productId)
+    if (item && quantity >= 1) item.quantity = quantity
+  }
+
+  const removeFromCart = (productId: number) => {
+    items.value = items.value.filter((item) => item.product.id !== productId)
+  }
+
+  const openDrawer = () => {
+    isDrawerOpen.value = true
+  }
+
+  const closeDrawer = () => {
+    isDrawerOpen.value = false
+  }
+
+  return {
+    items,
+    itemCount,
+    subTotal,
+    isDrawerOpen,
+    addToCart,
+    updateQuantity,
+    removeFromCart,
+    openDrawer,
+    closeDrawer,
+  }
 })
