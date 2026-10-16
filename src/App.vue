@@ -1,9 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div class="min-h-screen flex-col">
-    <RouterView />
-  </div>
+  <RouterView />
 </template>
 
 <style scoped></style>

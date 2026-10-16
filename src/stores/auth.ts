@@ -1,8 +1,15 @@
-// For the cart store structure we discussed, the main pieces would be:
-
-import type { Product } from '@/types'
+import type { User } from '@supabase/supabase-js'
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 
-// The store would make these available to any component that calls useCartStore().
-export const useAuthStore = defineStore('auth', () => {})
+export const useAuthStore = defineStore('auth', () => {
+  const user = ref<User | null>(null)
+  const isAuth = ref(false)
+
+  const setUser = (userData: User | null) => {
+    user.value = userData
+    isAuth.value = userData !== null
+  }
+
+  return { user, isAuth, setUser }
+})
