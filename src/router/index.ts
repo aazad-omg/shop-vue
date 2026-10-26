@@ -1,3 +1,4 @@
+import ShopLayout from '@/layouts/ShopLayout.vue'
 import {
   CartView,
   HomeView,
@@ -14,39 +15,45 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: HomeView,
-    },
-    {
-      path: '/profile',
-      name: 'profile',
-      component: ProfileView,
-    },
-    {
-      path: '/login',
-      name: 'login',
-      component: LoginView,
-    },
-    {
-      path: '/register',
-      name: 'register',
-      component: RegisterView,
-    },
-    {
-      path: '/product/:name',
-      name: 'product-detail',
-      component: ProductDetailView,
-    },
+      component: ShopLayout,
+      children: [
+        {
+          path: '',
+          name: 'home',
+          component: HomeView,
+        },
+        {
+          path: 'profile',
+          name: 'profile',
+          component: ProfileView,
+        },
+        {
+          path: 'login',
+          name: 'login',
+          component: LoginView,
+        },
+        {
+          path: 'register',
+          name: 'register',
+          component: RegisterView,
+        },
+        {
+          path: 'product/:name',
+          name: 'product-detail',
+          component: ProductDetailView,
+        },
 
-    {
-      path: '/cart',
-      name: 'cart',
-      component: CartView,
-    },
-    {
-      path: '/:pathMatch(.*)*',
-      name: 'NotFound',
-      component: NotFoundView,
+        {
+          path: 'cart',
+          name: 'cart',
+          component: CartView,
+        },
+        {
+          path: ':pathMatch(.*)*',
+          name: 'not-found',
+          component: NotFoundView,
+        },
+      ],
     },
   ],
 })

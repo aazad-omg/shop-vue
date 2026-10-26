@@ -2,12 +2,14 @@
 import { computed, ref } from 'vue'
 import { supabase } from '@/supabase'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores'
 import useVuelidate from '@vuelidate/core'
 import { Button, InputGroup, InputGroupAddon, InputGroupInput, Label, Spinner } from '@/components'
 import { Eye, EyeOff } from '@lucide/vue'
 import { email as emailValidator, minLength, required } from '@vuelidate/validators'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const email = ref<string>('')
 const password = ref<string>('')
@@ -34,11 +36,12 @@ const onSubmit = async () => {
   isLoading.value = true
 
   try {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: email.value,
       password: password.value,
     })
     if (error) throw error
+    authStore.setUser(data.user)
     router.replace('/')
   } catch (error: unknown) {
     alert(error instanceof Error ? error.message : 'Registration failed')

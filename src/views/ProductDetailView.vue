@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { AppNavbar, ProductCard, ProductImageZoom } from '@/components'
+import { ProductCard, ProductImageZoom } from '@/components'
 import { Card } from '@/components/'
 import { PRODUCTS } from '@/data/products'
 import { useCartStore } from '@/stores'
 import type { Product } from '@/types'
+import { NepaliRupee } from '@lucide/vue'
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -26,16 +27,18 @@ const quantity = ref<number>(1)
 
 const cart = useCartStore()
 
+const addProductToCart = (product: Product, amount = 1) => {
+  cart.addToCart(product, amount)
+  cart.openDrawer()
+}
+
 const addCurrentProductToCart = () => {
-  if (currentProduct.value) {
-    cart.addToCart(currentProduct.value, quantity.value)
-  }
+  if (currentProduct.value) addProductToCart(currentProduct.value, quantity.value)
 }
 </script>
 
 <template>
   <div class="min-h-screen w-full bg-amber-50">
-    <AppNavbar :products="products" :initial-product="currentProduct" />
     <main class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-8 sm:py-12">
       <section v-if="currentProduct" class="grid gap-4 lg:grid-cols-2 lg:gap-14">
         <!-- <img
@@ -52,8 +55,9 @@ const addCurrentProductToCart = () => {
           <h1 class="mt-2 text-4xl leading-tight font-extrabold text-brand sm:text-5xl">
             {{ currentProduct.name }}
           </h1>
-          <p class="mt-7 text-3xl font-bold text-stone-900">
-            ${{ currentProduct.price.toFixed(2) }}
+          <p class="flex items-center mt-7 text-3xl font-bold text-stone-900">
+            <NepaliRupee :size="22" color="#2a3a5e" :stroke-width="2.75" />
+            <span class="pl-1">{{ currentProduct.price.toFixed(2) }}</span>
           </p>
           <Card class="mt-6 gap-4 rounded-lg border-stone-200 bg-white p-4 shadow-none sm:p-5">
             <div>
@@ -119,7 +123,7 @@ const addCurrentProductToCart = () => {
             :to="`/product/${product.slug}`"
             class="block transition-all duration-200 ease-out hover:-translate-y-1 hover:cursor-pointer"
           >
-            <ProductCard :product="product" :add-to-cart="addCurrentProductToCart" />
+            <ProductCard :product="product" :add-to-cart="() => addProductToCart(product)" />
           </RouterLink>
         </div>
       </section>

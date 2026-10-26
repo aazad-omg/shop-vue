@@ -111,7 +111,7 @@ onUnmounted(() => {
         ref="imageRef"
         :src="props.src"
         :alt="props.alt"
-        class="block h-full w-full object-fill"
+        class="block h-full w-full object-cover"
       />
 
       <!-- Providing the refs here allows JS to access the elements: HTMLDivElement -->

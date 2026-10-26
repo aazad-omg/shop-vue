@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { BaseButton } from '@/components/ui'
 import {
   Combobox,
   ComboboxAnchor,
@@ -11,12 +10,15 @@ import {
 } from '@/components/ui'
 import { NepaliRupee, ShoppingCart, XIcon } from '@lucide/vue'
 import type { Product } from '@/types'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import { useCartStore } from '@/stores'
+import { useAuthStore, useCartStore } from '@/stores'
+import { supabase } from '@/supabase'
+import { CartDrawer } from '@/components/cart'
 
 const router = useRouter()
 const cart = useCartStore()
+const authStore = useAuthStore()
 
 const props = defineProps<{
   products: Product[]
@@ -25,7 +27,16 @@ const props = defineProps<{
 
 const selectedProduct = ref<Product | undefined>(props.initialProduct)
 const searchTerm = ref(props.initialProduct?.name ?? '')
-const isAuth = ref<Boolean>(false)
+const isLoggingOut = ref<Boolean>(false)
+const userInitial = computed(() => {
+  const name =
+    authStore.user?.user_metadata?.full_name ??
+    authStore.user?.user_metadata?.name ??
+    authStore.user?.email ??
+    ''
+
+  return String(name).trim().charAt(0).toLocaleUpperCase() || '?'
+})
 
 const displayProduct = (product: Product | undefined) => product?.name ?? ''
 const searchResults = computed(() => {
@@ -53,10 +64,27 @@ const handleProductSelect = (product: Product) => {
   router.push(`/product/${product.slug}`)
 }
 
-const handleLogout = () => {
-  alert('Logged out successfully!')
-  router.replace('/login')
+const handleLogout = async () => {
+  isLoggingOut.value = true
+
+  try {
+    const { error } = await supabase.auth.signOut()
+
+    if (error) {
+      alert(error.message)
+      return
+    }
+
+    authStore.setUser(null)
+    router.replace('/login')
+  } finally {
+    isLoggingOut.value = false
+  }
 }
+// Check if nested route is working
+onMounted(() => {
+  console.log('Navbar mounted')
+})
 </script>
 
 <template>
@@ -95,7 +123,7 @@ const handleLogout = () => {
             </button>
           </ComboboxAnchor>
 
-          <ComboboxList class="max-h-64 w-(--reka-combobox-trigger-width)">
+          <ComboboxList class="max-h-64 w-(--reka-combobox-trigger-width) z-60">
             <ComboboxEmpty>No products found.</ComboboxEmpty>
 
             <ComboboxGroup>
@@ -115,6 +143,7 @@ const handleLogout = () => {
 
       <div class="flex shrink-0 items-center gap-2 sm:gap-4">
         <RouterLink
+          v-if="authStore.isAuth"
           to="/profile"
           class="rounded-full px-3 py-2 text-xl font-semibold transition-colors hover:bg-stone-100"
         >
@@ -124,7 +153,7 @@ const handleLogout = () => {
           type="button"
           aria-label="Open cart"
           class="relative inline-flex items-center justify-center p-2"
-          @click="() => router.push('/cart')"
+          @click="cart.openDrawer"
         >
           <ShoppingCart :size="30" color="#2a3a5e" :stroke-width="2.5" />
 
@@ -137,7 +166,24 @@ const handleLogout = () => {
           </span>
         </button>
 
-        <BaseButton v-if="isAuth" @click="handleLogout">Log out</BaseButton>
+        <RouterLink
+          v-if="authStore.isAuth"
+          to="/profile"
+          :aria-label="`Open ${authStore.user?.user_metadata?.full_name ?? authStore.user?.user_metadata?.name ?? 'profile'}`"
+          class="inline-flex size-10 items-center justify-center rounded-full bg-brand font-semibold text-white transition-colors hover:bg-brand/90"
+        >
+          {{ userInitial }}
+        </RouterLink>
+
+        <button
+          v-if="authStore.isAuth"
+          type="button"
+          :disabled="isLoggingOut"
+          class="rounded-full px-3 py-2 font-semibold transition-colors hover:bg-stone-100"
+          @click="handleLogout"
+        >
+          {{ isLoggingOut ? 'Logging out...' : 'Log out' }}
+        </button>
 
         <RouterLink
           v-else
@@ -148,4 +194,5 @@ const handleLogout = () => {
       </div>
     </div>
   </nav>
+  <CartDrawer />
 </template>
