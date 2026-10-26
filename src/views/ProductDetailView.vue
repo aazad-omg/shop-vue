@@ -1,23 +1,28 @@
 <script setup lang="ts">
 import { ProductCard, ProductImageZoom } from '@/components'
 import { Card } from '@/components/'
-import { PRODUCTS } from '@/data/products'
-import { useCartStore } from '@/stores'
+import { useCartStore, useProductStore } from '@/stores'
 import type { Product } from '@/types'
 import { NepaliRupee } from '@lucide/vue'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 
-const products = ref<Product[]>([])
-products.value = PRODUCTS
+const productStore = useProductStore()
+// use reactively even while destructuring
+const { products, isLoading, error } = storeToRefs(productStore)
+
+// Fetch product list if empty
+onMounted(() => {
+  if (products.value.length === 0) productStore.fetchProducts()
+})
 
 // Find the product name from the slug
 const currentProduct = computed(() =>
   products.value.find((product) => product.slug === String(route.params.name ?? '')),
 )
-
 // Any four products but the current one
 const recommendedProducts = computed(() => {
   return products.value.filter((candidate) => candidate.id !== currentProduct.value?.id).slice(0, 4)

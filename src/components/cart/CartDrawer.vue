@@ -2,7 +2,11 @@
 import { NepaliRupee, Minus, Plus, Trash2, XIcon } from '@lucide/vue'
 import { useCartStore } from '@/stores'
 import { RouterLink } from 'vue-router'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+
+const props = defineProps<{
+  topOffset: number
+}>()
 
 const cart = useCartStore()
 
@@ -10,19 +14,30 @@ const handleOpenChange = (open: boolean) => {
   if (open) cart.openDrawer()
   else cart.closeDrawer()
 }
+
+const handleInteractOutside = (event: Event) => {
+  const target = event.target
+  if (target instanceof HTMLElement && target.closest('[data-sonner-toaster]')) {
+    event.preventDefault()
+  }
+}
 </script>
 
 <template>
   <Dialog :open="cart.isDrawerOpen" @update:open="handleOpenChange">
+    <!-- Provide dynamic top-offset to drawer based on navbar height -->
     <DialogContent
       :show-close-button="false"
-      class="cart-panel top-0! right-0! left-auto! h-dvh! max-h-dvh! w-full! max-w-md! translate-x-0! translate-y-0! gap-0! rounded-none! border-0! p-0! flex flex-col bg-white shadow-2xl data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right"
+      @interact-outside="handleInteractOutside"
+      :style="{ '--cart-top-offset': `${props.topOffset}px` }"
+      class="top-(--cart-top-offset)! h-[calc(100dvh_-_var(--cart-top-offset))]! max-h-[calc(100dvh_-_var(--cart-top-offset))]! right-0! left-auto! w-full! max-w-md! translate-x-0! translate-y-0! gap-0! rounded-none! border-0! p-0! flex flex-col bg-white shadow-2xl data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right"
     >
+      <DialogDescription class="sr-only">
+        Review items in your cart, update quantities, or continue to checkout.
+      </DialogDescription>
       <header class="flex items-center justify-between border-0 border-stone-200 px-5 py-4">
         <div>
-          <DialogTitle id="cart-drawer-title" class="text-xl font-bold text-stone-900">
-            Your cart
-          </DialogTitle>
+          <DialogTitle class="text-xl font-bold text-stone-900"> Your cart </DialogTitle>
           <p class="mt-0.5 text-sm text-stone-500">
             {{ cart.itemCount }} {{ cart.itemCount === 1 ? 'item' : 'items' }}
           </p>

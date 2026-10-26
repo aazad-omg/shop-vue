@@ -10,7 +10,10 @@ const router = useRouter()
 
     <p class="text-gray-600">Sorry, the page you're looking for doesn't exist.</p>
 
-    <button class="rounded bg-blue-600 px-4 py-2 text-white" @click="router.push('/')">
+    <button
+      class="rounded bg-blue-600 px-4 py-2 text-white hover:cursor-pointer"
+      @click="router.push('/')"
+    >
       Back to Home
     </button>
   </main>

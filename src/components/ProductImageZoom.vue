@@ -1,10 +1,33 @@
 <script setup lang="ts">
-import { nextTick, ref, onMounted, onUnmounted } from 'vue'
+import { useMediaQuery } from '@vueuse/core'
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+
+const fallbackImage = '/product-placeholder.svg'
 
 const props = defineProps<{
   src: string
   alt: string
 }>()
+
+const imageSrc = ref(props.src || fallbackImage)
+const isFallbackImage = ref(!props.src || props.src === fallbackImage)
+
+// Disable image zoom for smaller screen sizes
+// 64rem = 1024px
+const canZoom = useMediaQuery('(min-width: 64rem)')
+
+watch(
+  () => props.src,
+  (src) => {
+    imageSrc.value = src || fallbackImage
+    isFallbackImage.value = !src || src === fallbackImage
+    isZooming.value = false
+  },
+)
+
+watch(canZoom, (enabled) => {
+  if (!enabled) isZooming.value = false
+})
 
 // Provided type null to refs incase the element is not available yet
 const imageRef = ref<HTMLImageElement | null>(null)
@@ -17,6 +40,8 @@ let zoomX = 1
 let zoomY = 1
 
 const moveLens = (event: MouseEvent) => {
+  if (!canZoom.value || isFallbackImage.value) return
+
   const image = imageRef.value
   const lens = lensRef.value
   const result = resultRef.value
@@ -49,6 +74,8 @@ const moveLens = (event: MouseEvent) => {
 }
 
 const setupZoom = () => {
+  if (!canZoom.value || isFallbackImage.value) return
+
   // To use template refs
   const image = imageRef.value
   const lens = lensRef.value
@@ -69,22 +96,32 @@ const setupZoom = () => {
   zoomX = resultWidth / lensWidth
   zoomY = resultHeight / lensHeight
 
-  result.style.backgroundImage = `url("${props.src}")`
+  result.style.backgroundImage = `url("${image.currentSrc}")`
   result.style.backgroundSize = `${image.clientWidth * zoomX}px ${image.clientHeight * zoomY}px`
 }
 
 const showZoom = async () => {
+  if (!canZoom.value || isFallbackImage.value) return
+
   isZooming.value = true
   // Continue only after vue has finished updating the DOM
   await nextTick()
   setupZoom()
 }
 
+const handleImageError = () => {
+  if (imageSrc.value === fallbackImage) return
+
+  isFallbackImage.value = true
+  isZooming.value = false
+  imageSrc.value = fallbackImage
+}
+
 onMounted(() => {
   const image = imageRef.value
   if (!image) return
 
-  if (image.complete && image.naturalWidth > 0) {
+  if (image.complete && image.naturalWidth > 0 && !isFallbackImage.value) {
     setupZoom()
   } else {
     image.addEventListener('load', setupZoom)
@@ -100,7 +137,8 @@ onUnmounted(() => {
 <template>
   <div class="relative z-50 flex gap-4 items-center">
     <div
-      class="relative h-[90%] w-[90%] shrink-0 cursor-crosshair"
+      class="relative h-[90%] w-[90%] shrink-0 cursor-default"
+      :class="{ 'cursor-crosshair': canZoom && !isFallbackImage }"
       @mouseenter="showZoom"
       @mouseleave="isZooming = false"
       @mousemove="moveLens"
@@ -109,9 +147,10 @@ onUnmounted(() => {
       <!-- and its associated properties such as naturalWidth,clientWidth and complete -->
       <img
         ref="imageRef"
-        :src="props.src"
+        :src="imageSrc"
         :alt="props.alt"
         class="block h-full w-full object-cover"
+        @error="handleImageError"
       />
 
       <!-- Providing the refs here allows JS to access the elements: HTMLDivElement -->

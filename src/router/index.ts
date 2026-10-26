@@ -28,16 +28,6 @@ const router = createRouter({
           component: ProfileView,
         },
         {
-          path: 'login',
-          name: 'login',
-          component: LoginView,
-        },
-        {
-          path: 'register',
-          name: 'register',
-          component: RegisterView,
-        },
-        {
           path: 'product/:name',
           name: 'product-detail',
           component: ProductDetailView,
@@ -48,12 +38,22 @@ const router = createRouter({
           name: 'cart',
           component: CartView,
         },
-        {
-          path: ':pathMatch(.*)*',
-          name: 'not-found',
-          component: NotFoundView,
-        },
       ],
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: RegisterView,
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: NotFoundView,
     },
   ],
 })

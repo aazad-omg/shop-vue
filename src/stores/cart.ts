@@ -1,8 +1,10 @@
 // For the cart store structure we discussed, the main pieces would be:
 
 import type { Product } from '@/types'
+import { useStorage } from '@vueuse/core'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { toast } from 'vue-sonner'
 
 type CartItem = {
   product: Product
@@ -12,7 +14,8 @@ type CartItem = {
 // The store would make these available to any component that calls useCartStore().
 export const useCartStore = defineStore('cart', () => {
   // items: the cart’s state, containing each product and its quantity.
-  const items = ref<CartItem[]>([])
+  // add items in cart to localStorage to persist across browser refresh
+  const items = useStorage<CartItem[]>('cart-items', [])
   const isDrawerOpen = ref(false)
 
   // itemCount: a getter that totals the quantities across all cart lines,
@@ -32,18 +35,48 @@ export const useCartStore = defineStore('cart', () => {
   //            if it’s already in the cart.
 
   const addToCart = (product: Product, quantity = 1) => {
-    //   Check if the product already exists in the cart
-    const existing = items.value.find((item) => item.product.id === product.id)
-    //   If exists add its quantity
-    if (existing) existing.quantity += quantity
-    //   else add the new product to cart
-    else items.value.push({ product, quantity })
+    if (quantity <= 0) return
+
+    const existingItem = items.value.find((item) => item.product.id === product.id)
+
+    if (existingItem) {
+      existingItem.quantity += quantity
+      toast.success('Quantity increased', {
+        description: `${product.name} is added to cart`,
+      })
+      return
+    }
+
+    items.value.push({ product, quantity })
+
+    toast.success('Added to cart', {
+      description: product.name,
+    })
   }
 
-  // Find matching cart item and updates quantity
   const updateQuantity = (productId: number, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(productId)
+      toast.success('Item removed from cart')
+      return
+    }
+
     const item = items.value.find((cartItem) => cartItem.product.id === productId)
-    if (item && quantity >= 1) item.quantity = quantity
+    if (!item) return
+
+    const previousQuantity = item.quantity
+    item.quantity = quantity
+
+    const toastMessage =
+      quantity > previousQuantity
+        ? `Quantity increased to ${quantity}`
+        : quantity < previousQuantity
+          ? `Quantity decreased to ${quantity}`
+          : 'Quantity updated'
+
+    toast.success(toastMessage, {
+      description: item.product.name,
+    })
   }
 
   const removeFromCart = (productId: number) => {

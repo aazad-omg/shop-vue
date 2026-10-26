@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import { ProductCard } from '@/components'
-import { PRODUCTS } from '@/data/products'
+import { ProductCard, ProductCardSkeleton } from '@/components'
 import type { Product } from '@/types'
-import { useCartStore } from '@/stores'
+import { useCartStore, useProductStore } from '@/stores'
+import { storeToRefs } from 'pinia'
 
 const categories = ref<string[]>([
   'All goods',
@@ -18,8 +18,12 @@ const categories = ref<string[]>([
   'Stationery',
   'Seasonal markdowns',
 ])
-const products = ref<Product[]>([])
-products.value = PRODUCTS
+
+const productStore = useProductStore()
+// use reactively even while destructuring
+const { products, isLoading, error } = storeToRefs(productStore)
+
+onMounted(() => productStore.fetchProducts())
 const selectedCategory = ref('All goods')
 const filteredProducts = computed(() =>
   selectedCategory.value === 'All goods'
@@ -39,14 +43,17 @@ const addCurrentProductToCart = (product: Product) => {
   <!-- Root div -->
   <div class="min-h-screen w-full bg-amber-50">
     <!-- Category Navigation -->
-    <nav aria-label="Product categories" class="border-b border-stone-200">
+    <nav
+      aria-label="Product categories"
+      class="overflow-x-auto border-b border-stone-200 lg:overflow-visible"
+    >
       <ul
-        class="mx-auto grid max-w-7xl list-none grid-cols-2 justify-center gap-x-4 px-4 sm:grid-cols-4 sm:px-6 lg:grid-cols-9"
+        class="mx-auto flex w-max min-w-full list-none gap-2 px-4 py-1 sm:px-6 lg:grid lg:w-full lg:max-w-7xl lg:grid-cols-9 lg:gap-x-4"
       >
-        <li v-for="category in categories" :key="category">
+        <li v-for="category in categories" :key="category" class="shrink-0 lg:shrink">
           <button
             type="button"
-            class="h-full w-full border-b-5 px-2 py-1.5 text-center text-lg font-medium transition-colors duration-200"
+            class="h-full border-b-5 px-3 py-2 text-center text-sm font-medium transition-colors duration-200 sm:text-base lg:w-full lg:whitespace-normal lg:px-2"
             :class="
               selectedCategory === category
                 ? 'border-brand text-brand'
@@ -64,7 +71,18 @@ const addCurrentProductToCart = (product: Product) => {
     <main class="mx-auto w-full max-w-7xl px-4 pb-10">
       <!-- <ProductBanner /> -->
 
-      <div class="mt-8">
+      <div
+        v-if="isLoading"
+        class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        aria-label="Loading products"
+      >
+        <ProductCardSkeleton v-for="index in 8" :key="index" />
+      </div>
+      <p v-else-if="error" class="mt-8 py-16 text-center text-red-700">
+        Could not load products: {{ error }}
+      </p>
+
+      <div v-else class="mt-8">
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <RouterLink
             v-for="product in filteredProducts"
