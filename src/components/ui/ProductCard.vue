@@ -57,7 +57,7 @@ const handleImageError = (event: Event) => {
       <CardDescription>{{ props.product.subtitle }}</CardDescription>
     </CardHeader>
     <CardContent class="px-4 pt-3 pb-4">
-      <p class="text-sm text-gray-600">{{ props.product.description }}</p>
+      <p class="text-sm text-gray-600 line-clamp-2">{{ props.product.description }}</p>
       <div class="mt-3 flex items-center justify-between">
         <p class="text-sm text-amber-500" role="img" aria-label="Rating">⭐</p>
         <p class="flex items-center text-lg font-bold text-brand">

@@ -2,11 +2,15 @@
 import { NepaliRupee, Minus, Plus, Trash2, XIcon } from '@lucide/vue'
 import { useCartStore } from '@/stores'
 import { RouterLink } from 'vue-router'
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
-
-const props = defineProps<{
-  topOffset: number
-}>()
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components'
 
 const cart = useCartStore()
 
@@ -24,33 +28,35 @@ const handleInteractOutside = (event: Event) => {
 </script>
 
 <template>
-  <Dialog :open="cart.isDrawerOpen" @update:open="handleOpenChange">
-    <!-- Provide dynamic top-offset to drawer based on navbar height -->
-    <DialogContent
+  <!-- direction="right" -->
+  <Drawer swipe-direction="right" :open="cart.isDrawerOpen" @update:open="handleOpenChange">
+    <DrawerContent
       :show-close-button="false"
       @interact-outside="handleInteractOutside"
-      :style="{ '--cart-top-offset': `${props.topOffset}px` }"
-      class="top-(--cart-top-offset)! h-[calc(100dvh_-_var(--cart-top-offset))]! max-h-[calc(100dvh_-_var(--cart-top-offset))]! right-0! left-auto! w-full! max-w-md! translate-x-0! translate-y-0! gap-0! rounded-none! border-0! p-0! flex flex-col bg-white shadow-2xl data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right"
+      class="top-0! bottom-auto! h-dvh! max-h-dvh! right-0! left-auto! w-full! max-w-md! gap-0! rounded-none! border-0! p-0! flex flex-col bg-white shadow-2xl"
     >
-      <DialogDescription class="sr-only">
-        Review items in your cart, update quantities, or continue to checkout.
-      </DialogDescription>
-      <header class="flex items-center justify-between border-0 border-stone-200 px-5 py-4">
+      <DrawerHeader
+        class="flex-row items-center justify-between border-0 border-stone-200 px-5 py-4"
+      >
         <div>
-          <DialogTitle class="text-xl font-bold text-stone-900"> Your cart </DialogTitle>
-          <p class="mt-0.5 text-sm text-stone-500">
+          <DrawerTitle class="text-xl font-bold text-stone-900"> Your cart </DrawerTitle>
+          <p v-if="cart.itemCount > 0" class="mt-0.5 text-sm text-stone-500">
             {{ cart.itemCount }} {{ cart.itemCount === 1 ? 'item' : 'items' }}
           </p>
         </div>
-        <button
-          type="button"
-          aria-label="Close cart"
-          class="inline-flex size-9 items-center justify-center rounded-md text-stone-600 transition-colors hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-          @click="cart.closeDrawer"
-        >
-          <XIcon class="size-5" />
-        </button>
-      </header>
+        <DrawerDescription class="sr-only">
+          Review items in your cart, update quantities, or continue to checkout.
+        </DrawerDescription>
+        <DrawerClose as-child>
+          <button
+            type="button"
+            aria-label="Close cart"
+            class="inline-flex size-9 items-center justify-center rounded-md text-stone-600 transition-colors hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            <XIcon class="size-5" />
+          </button>
+        </DrawerClose>
+      </DrawerHeader>
 
       <div
         v-if="cart.items.length === 0"
@@ -123,7 +129,7 @@ const handleInteractOutside = (event: Event) => {
         </li>
       </ul>
 
-      <footer v-if="cart.items.length > 0" class="border-t border-stone-200 px-5 py-5">
+      <DrawerFooter v-if="cart.items.length > 0" class="border-t border-stone-200 px-5 py-5">
         <div class="flex items-center justify-between text-base font-semibold text-stone-900">
           <span>Subtotal</span>
           <span class="flex items-center">
@@ -145,7 +151,7 @@ const handleInteractOutside = (event: Event) => {
         >
           Continue shopping
         </button>
-      </footer>
-    </DialogContent>
-  </Dialog>
+      </DrawerFooter>
+    </DrawerContent>
+  </Drawer>
 </template>
