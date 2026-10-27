@@ -10,7 +10,7 @@ import {
 } from '@/components/ui'
 import { NepaliRupee, ShoppingCart, XIcon } from '@lucide/vue'
 import type { Product } from '@/types'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore, useCartStore } from '@/stores'
 import { supabase } from '@/supabase'
@@ -19,8 +19,6 @@ import { CartDrawer } from '@/components/cart'
 const router = useRouter()
 const cart = useCartStore()
 const authStore = useAuthStore()
-const navbarElement = ref<HTMLElement | null>(null)
-const navbarHeight = ref(0)
 
 let navbarResizeObserver: ResizeObserver | undefined
 
@@ -86,17 +84,6 @@ const handleLogout = async () => {
   }
 }
 
-onMounted(() => {
-  if (!navbarElement.value) return
-
-  const updateNavbarHeight = () => {
-    navbarHeight.value = navbarElement.value?.offsetHeight ?? 0
-  }
-  updateNavbarHeight()
-  navbarResizeObserver = new ResizeObserver(updateNavbarHeight)
-  navbarResizeObserver.observe(navbarElement.value)
-})
-
 // disconnect the ResizeObserver that was watching the navbar’s size
 onBeforeUnmount(() => navbarResizeObserver?.disconnect())
 </script>
@@ -104,7 +91,7 @@ onBeforeUnmount(() => navbarResizeObserver?.disconnect())
 <template>
   <nav
     ref="navbarElement"
-    class="sticky top-0 z-55 w-full border-b border-stone-200 bg-white/95 text-stone-800 shadow-sm backdrop-blur"
+    class="sticky top-0 z-45 w-full border-b border-stone-200 bg-white/95 text-stone-800 shadow-sm backdrop-blur"
   >
     <div
       class="mx-auto grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 px-4 py-3 sm:px-6 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-6 lg:gap-x-8 lg:px-8"
@@ -216,5 +203,5 @@ onBeforeUnmount(() => navbarResizeObserver?.disconnect())
       </div>
     </div>
   </nav>
-  <CartDrawer :top-offset="navbarHeight" />
+  <CartDrawer />
 </template>
