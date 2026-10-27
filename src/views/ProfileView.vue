@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AppNavbar, BaseButton } from '@/components'
+import { BaseButton } from '@/components'
 import { PRODUCTS } from '@/data/products'
 import type { Product } from '@/types'
 import { ref } from 'vue'
@@ -12,7 +12,6 @@ products.value = PRODUCTS
 
 <template>
   <div class="flex min-h-screen flex-col bg-amber-200">
-    <AppNavbar :products="products" />
     <main class="flex flex-1 flex-col items-center justify-center gap-6 px-4 text-center">
       <p class="text-5xl">This is your profile page {{ name }}</p>
       <RouterLink to="/">

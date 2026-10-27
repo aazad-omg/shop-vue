@@ -10,7 +10,7 @@ import {
 } from '@/components/ui'
 import { NepaliRupee, ShoppingCart, XIcon } from '@lucide/vue'
 import type { Product } from '@/types'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore, useCartStore } from '@/stores'
 import { supabase } from '@/supabase'
@@ -19,6 +19,10 @@ import { CartDrawer } from '@/components/cart'
 const router = useRouter()
 const cart = useCartStore()
 const authStore = useAuthStore()
+const navbarElement = ref<HTMLElement | null>(null)
+const navbarHeight = ref(0)
+
+let navbarResizeObserver: ResizeObserver | undefined
 
 const props = defineProps<{
   products: Product[]
@@ -27,7 +31,7 @@ const props = defineProps<{
 
 const selectedProduct = ref<Product | undefined>(props.initialProduct)
 const searchTerm = ref(props.initialProduct?.name ?? '')
-const isLoggingOut = ref<Boolean>(false)
+const isLoggingOut = ref<boolean>(false)
 const userInitial = computed(() => {
   const name =
     authStore.user?.user_metadata?.full_name ??
@@ -81,25 +85,41 @@ const handleLogout = async () => {
     isLoggingOut.value = false
   }
 }
-// Check if nested route is working
+
 onMounted(() => {
-  console.log('Navbar mounted')
+  if (!navbarElement.value) return
+
+  const updateNavbarHeight = () => {
+    navbarHeight.value = navbarElement.value?.offsetHeight ?? 0
+  }
+  updateNavbarHeight()
+  navbarResizeObserver = new ResizeObserver(updateNavbarHeight)
+  navbarResizeObserver.observe(navbarElement.value)
 })
+
+// disconnect the ResizeObserver that was watching the navbar’s size
+onBeforeUnmount(() => navbarResizeObserver?.disconnect())
 </script>
 
 <template>
   <nav
+    ref="navbarElement"
     class="sticky top-0 z-55 w-full border-b border-stone-200 bg-white/95 text-stone-800 shadow-sm backdrop-blur"
   >
-    <div class="flex w-full items-center justify-around gap-4 px-4 py-3 sm:px-6">
-      <RouterLink to="/" class="">
+    <div
+      class="mx-auto grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 px-4 py-3 sm:px-6 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-6 lg:gap-x-8 lg:px-8"
+    >
+      <RouterLink to="/" class="min-w-0">
         <div class="flex items-center gap-2 font-extrabold text-brand">
           <p class="text-3xl">ShopVue</p>
           <NepaliRupee :size="35" color="#dd0808" :stroke-width="2.5" />
         </div>
       </RouterLink>
 
-      <div role="search" class="w-full max-w-xl flex-1">
+      <div
+        role="search"
+        class="col-span-2 row-start-2 w-full min-w-0 md:col-span-1 md:col-start-2 md:row-start-1 md:mx-auto md:max-w-xl"
+      >
         <Combobox v-model="selectedProduct" by="id" :ignore-filter="true">
           <ComboboxAnchor
             class="flex w-full items-center rounded-md border border-stone-300 bg-white shadow-sm transition-colors focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20"
@@ -141,7 +161,9 @@ onMounted(() => {
         </Combobox>
       </div>
 
-      <div class="flex shrink-0 items-center gap-2 sm:gap-4">
+      <div
+        class="col-start-2 row-start-1 flex shrink-0 items-center justify-self-end gap-1 sm:gap-2 md:col-start-3 md:gap-3 lg:gap-4"
+      >
         <RouterLink
           v-if="authStore.isAuth"
           to="/profile"
@@ -194,5 +216,5 @@ onMounted(() => {
       </div>
     </div>
   </nav>
-  <CartDrawer />
+  <CartDrawer :top-offset="navbarHeight" />
 </template>

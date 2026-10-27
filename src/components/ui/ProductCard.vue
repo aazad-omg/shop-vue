@@ -3,6 +3,8 @@ import type { Product } from '@/types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card'
 import { NepaliRupee } from '@lucide/vue'
 
+const fallbackImage = '/product-placeholder.svg'
+
 type Props = {
   product: Product
   addToCart: () => void
@@ -20,15 +22,24 @@ const props = withDefaults(defineProps<Props>(), {
     categories: [],
   }),
 })
+
+const handleImageError = (event: Event) => {
+  const image = event.currentTarget
+  if (image instanceof HTMLImageElement && image.getAttribute('src') !== fallbackImage) {
+    image.src = fallbackImage
+  }
+}
 </script>
 
 <template>
   <Card class="group w-full overflow-hidden gap-0 p-0 transition-shadow hover:shadow-md">
     <div class="relative">
       <img
-        :src="props.product.image"
+        :src="props.product.image || fallbackImage"
         :alt="props.product.name"
+        loading="lazy"
         class="h-72 w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+        @error="handleImageError"
       />
       <button
         type="button"
