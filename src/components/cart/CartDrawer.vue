@@ -11,8 +11,10 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components'
+import { useImageFallback } from '@/composables'
 
 const cart = useCartStore()
+const { fallbackImage, handleImageError } = useImageFallback()
 
 const handleOpenChange = (open: boolean) => {
   if (open) cart.openDrawer()
@@ -32,12 +34,10 @@ const handleInteractOutside = (event: Event) => {
   <Drawer swipe-direction="right" :open="cart.isDrawerOpen" @update:open="handleOpenChange">
     <DrawerContent
       :show-close-button="false"
+      class="max-w-md! gap-0! rounded-none! border-0! p-0! flex flex-col bg-white shadow-2xl"
       @interact-outside="handleInteractOutside"
-      class="top-0! bottom-auto! h-dvh! max-h-dvh! right-0! left-auto! w-full! max-w-md! gap-0! rounded-none! border-0! p-0! flex flex-col bg-white shadow-2xl"
     >
-      <DrawerHeader
-        class="flex-row items-center justify-between border-0 border-stone-200 px-5 py-4"
-      >
+      <DrawerHeader class="flex-row justify-between border-0 border-stone-200 px-5 py-4">
         <div>
           <DrawerTitle class="text-xl font-bold text-stone-900"> Your cart </DrawerTitle>
           <p v-if="cart.itemCount > 0" class="mt-0.5 text-sm text-stone-500">
@@ -51,7 +51,7 @@ const handleInteractOutside = (event: Event) => {
           <button
             type="button"
             aria-label="Close cart"
-            class="inline-flex size-9 items-center justify-center rounded-md text-stone-600 transition-colors hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            class="size-9 items-center justify-center rounded-md text-stone-600 transition-colors hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             <XIcon class="size-5" />
           </button>
@@ -76,9 +76,10 @@ const handleInteractOutside = (event: Event) => {
       <ul v-else class="flex-1 divide-y divide-stone-200 overflow-y-auto px-5">
         <li v-for="item in cart.items" :key="item.product.id" class="flex gap-4 py-5">
           <img
-            :src="item.product.image"
+            :src="item.product.image || fallbackImage"
             :alt="item.product.name"
             class="size-20 shrink-0 rounded-md object-cover"
+            @error="handleImageError"
           />
           <div class="min-w-0 flex-1">
             <div class="flex items-start justify-between gap-3">

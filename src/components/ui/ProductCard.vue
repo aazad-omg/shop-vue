@@ -2,8 +2,9 @@
 import type { Product } from '@/types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card'
 import { NepaliRupee } from '@lucide/vue'
+import { useImageFallback } from '@/composables'
 
-const fallbackImage = '/product-placeholder.svg'
+const { fallbackImage, handleImageError } = useImageFallback()
 
 type Props = {
   product: Product
@@ -22,13 +23,6 @@ const props = withDefaults(defineProps<Props>(), {
     categories: [],
   }),
 })
-
-const handleImageError = (event: Event) => {
-  const image = event.currentTarget
-  if (image instanceof HTMLImageElement && image.getAttribute('src') !== fallbackImage) {
-    image.src = fallbackImage
-  }
-}
 </script>
 
 <template>

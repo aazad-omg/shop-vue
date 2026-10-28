@@ -30,7 +30,6 @@ const filteredProducts = computed(() =>
     ? products.value
     : products.value.filter((product) => product.categories.includes(selectedCategory.value)),
 )
-
 const cart = useCartStore()
 
 const addCurrentProductToCart = (product: Product) => {
@@ -48,16 +47,16 @@ const addCurrentProductToCart = (product: Product) => {
       class="overflow-x-auto border-b border-stone-200 lg:overflow-visible"
     >
       <ul
-        class="mx-auto flex w-max min-w-full list-none gap-2 px-4 py-1 sm:px-6 lg:grid lg:w-full lg:max-w-7xl lg:grid-cols-9 lg:gap-x-4"
+        class="mx-auto flex w-max min-w-full list-none items-center gap-2 px-4 py-2 sm:px-6 lg:grid lg:w-full lg:max-w-7xl lg:grid-cols-9 lg:gap-x-4"
       >
         <li v-for="category in categories" :key="category" class="shrink-0 lg:shrink">
           <button
             type="button"
-            class="h-full border-b-5 px-3 py-2 text-center text-sm font-medium transition-colors duration-200 sm:text-base lg:w-full lg:whitespace-normal lg:px-2"
+            class="h-full rounded-full px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:text-base lg:w-full lg:whitespace-normal lg:px-2"
             :class="
               selectedCategory === category
-                ? 'border-brand text-brand'
-                : 'border-transparent text-stone-600 hover:border-brand-300 hover:text-brand'
+                ? 'bg-brand text-white shadow-sm'
+                : 'text-stone-600 hover:bg-stone-100 hover:text-brand'
             "
             :aria-pressed="selectedCategory === category"
             @click="selectedCategory = category"

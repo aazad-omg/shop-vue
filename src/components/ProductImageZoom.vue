@@ -135,9 +135,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="relative z-50 flex gap-4 items-center">
+  <div class="relative w-full">
     <div
-      class="relative h-[90%] w-[90%] shrink-0 cursor-default"
+      class="w-full cursor-default"
       :class="{ 'cursor-crosshair': canZoom && !isFallbackImage }"
       @mouseenter="showZoom"
       @mouseleave="isZooming = false"
@@ -149,7 +149,7 @@ onUnmounted(() => {
         ref="imageRef"
         :src="imageSrc"
         :alt="props.alt"
-        class="block h-full w-full object-cover"
+        class="absolute inset-0 block h-full w-full object-cover"
         @error="handleImageError"
       />
 
@@ -161,12 +161,11 @@ onUnmounted(() => {
         ref="lensRef"
         class="pointer-events-none absolute h-25 w-25 border border-[#888] bg-blue-500/25"
       />
+      <div
+        v-show="isZooming"
+        ref="resultRef"
+        class="absolute top-0 left-full z-50 ml-4 h-140 w-160 shrink-0 bg-no-repeat"
+      />
     </div>
-
-    <div
-      v-show="isZooming"
-      ref="resultRef"
-      class="absolute top-0 left-full z-50 h-140 w-160 shrink-0 bg-no-repeat"
-    />
   </div>
 </template>

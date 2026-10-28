@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { AppNavbar } from '@/components'
-import { PRODUCTS } from '@/data/products'
-import type { Product } from '@/types'
+import { useProductStore } from '@/stores'
+import { storeToRefs } from 'pinia'
+
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 
-const products = ref<Product[]>([])
-products.value = PRODUCTS
+const productStore = useProductStore()
+// use reactively even while destructuring
+const { products, isLoading, error } = storeToRefs(productStore)
 
 // Find the product name from the slug
 const currentProduct = computed(() =>
