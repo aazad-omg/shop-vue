@@ -83,6 +83,11 @@ export const useCartStore = defineStore('cart', () => {
     items.value = items.value.filter((item) => item.product.id !== productId)
   }
 
+  const clearCart = () => {
+    items.value = []
+    isDrawerOpen.value = false
+  }
+
   const openDrawer = () => {
     isDrawerOpen.value = true
   }
@@ -99,6 +104,7 @@ export const useCartStore = defineStore('cart', () => {
     addToCart,
     updateQuantity,
     removeFromCart,
+    clearCart,
     openDrawer,
     closeDrawer,
   }

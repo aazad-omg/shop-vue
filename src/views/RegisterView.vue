@@ -2,14 +2,18 @@
 import useVuelidate from '@vuelidate/core'
 
 import { computed, ref } from 'vue'
-import { supabase } from '@/supabase'
 import { useRouter } from 'vue-router'
-import { email as emailValidator, minLength, sameAs } from '@vuelidate/validators'
-import { Button } from '@/components/ui/button'
+import { email as emailValidator, minLength, sameAs, required } from '@vuelidate/validators'
+import { Button } from '@/components'
 import { InputGroup, InputGroupAddon, InputGroupInput, Label, Spinner } from '@/components'
 import { Eye, EyeOff } from '@lucide/vue'
+import { toast } from 'vue-sonner'
+import { useAuthStore } from '@/stores'
+import { storeToRefs } from 'pinia'
 
 const router = useRouter()
+const authStore = useAuthStore()
+const { isLoading, error } = storeToRefs(authStore)
 
 const name = ref<string>('')
 const email = ref<string>('')
@@ -18,23 +22,22 @@ const confirmPassword = ref<string>('')
 
 const showPassword = ref<boolean>(false)
 const showConfirmPassword = ref<boolean>(false)
-const isLoading = ref<boolean>(false)
 
 const rules = computed(() => ({
   name: {
-    required: true,
+    required,
     minLength: minLength(2),
   },
   email: {
-    required: true,
+    required,
     email: emailValidator,
   },
   password: {
-    required: true,
+    required,
     minLength: minLength(6),
   },
   confirmPassword: {
-    required: true,
+    required,
     minLength: minLength(6),
     sameAsPassword: sameAs(password),
   },
@@ -44,39 +47,32 @@ const v$ = useVuelidate(rules, { name, email, password, confirmPassword })
 const onSubmit = async () => {
   const isValid = await v$.value.$validate()
   if (!isValid) return
-  isLoading.value = true
 
-  try {
-    const { error } = await supabase.auth.signUp({
-      email: email.value,
-      password: password.value,
-      options: {
-        data: {
-          name: name.value,
-        },
-      },
-    })
-    if (error) throw error
-    router.push('/login')
-  } catch (error: unknown) {
-    alert(error instanceof Error ? error.message : 'Registration failed')
-  } finally {
-    isLoading.value = false
+  const signedUp = await authStore.signUp(email.value, password.value, name.value)
+
+  if (!signedUp) {
+    alert(error.value ?? 'Registration failed')
+    return
   }
+
+  toast.success('Successfully registered')
+  await router.push('/login')
 }
 </script>
 
 <template>
-  <div class="mx-auto my-10 flex w-full max-w-md flex-col gap-4 rounded-2xl bg-white p-8 shadow-xl">
-    <div class="text-center text-2xl font-bold tracking-wide text-amber-800">SHOPVUE</div>
-    <div><p class="text-center text-xl font-semibold">Create your account</p></div>
+  <div
+    class="mx-auto my-10 flex w-full max-w-lg flex-col gap-5 rounded-2xl border border-amber-900/15 bg-white p-10 shadow-2xl shadow-amber-950/25"
+  >
+    <div class="text-center text-3xl font-bold tracking-wide text-amber-800">SHOPVUE</div>
+    <div><p class="text-center text-2xl font-semibold">Create your account</p></div>
 
     <form novalidate @submit.prevent="onSubmit">
       <div class="">
-        <Label for="name" class="py-2 text-md">Name</Label>
+        <Label for="name" class="py-2 text-lg">Name</Label>
 
         <InputGroup
-          class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30 text-base"
+          class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
         >
           <InputGroupInput
             id="name"
@@ -94,10 +90,10 @@ const onSubmit = async () => {
       </div>
 
       <div class="">
-        <Label for="email" class="py-2 text-md">Email</Label>
+        <Label for="email" class="py-2 text-lg">Email</Label>
 
         <InputGroup
-          class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30 text-base"
+          class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
         >
           <InputGroupInput
             id="email"
@@ -115,7 +111,7 @@ const onSubmit = async () => {
       </div>
 
       <div class="">
-        <Label for="password" class="py-2 text-md">Password</Label>
+        <Label for="password" class="py-2 text-lg">Password</Label>
 
         <InputGroup
           class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
@@ -147,7 +143,7 @@ const onSubmit = async () => {
       </div>
 
       <div class="">
-        <Label for="confirmPassword" class="py-2 text-md">Confirm Password</Label>
+        <Label for="confirmPassword" class="py-2 text-lg">Confirm Password</Label>
 
         <InputGroup
           class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
@@ -178,18 +174,18 @@ const onSubmit = async () => {
         </p>
       </div>
 
-      <div class="mt-2 flex justify-center pt-2">
+      <div class="mt-2 flex justify-center py-2 bg">
         <Button
           type="submit"
           :disabled="isLoading"
-          class="transition-transform active:scale-[0.85] hover:cursor-pointer"
+          class="w-full py-5 transition-transform active:scale-[0.85] hover:cursor-pointer bg-brand-900"
         >
           <Spinner v-if="isLoading" class="size-4" />
-          {{ isLoading ? 'Logging in…' : 'Login' }}
+          {{ isLoading ? 'Registering…' : 'Register' }}
         </Button>
       </div>
 
-      <div class="flex justify-center items-center mt-4 text-center text-md text-gray-400">
+      <div class="flex justify-center items-center mt-4 text-center text-base text-gray-400">
         Already have an account?
         <span class="ml-1">
           <RouterLink to="/login">

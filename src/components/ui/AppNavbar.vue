@@ -7,20 +7,21 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
+  ComboboxViewport,
 } from '@/components/ui'
 import { NepaliRupee, ShoppingCart, XIcon } from '@lucide/vue'
 import type { Product } from '@/types'
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore, useCartStore } from '@/stores'
 import { supabase } from '@/supabase'
 import { CartDrawer } from '@/components/cart'
+import { useImageFallback } from '@/composables'
 
 const router = useRouter()
 const cart = useCartStore()
 const authStore = useAuthStore()
-
-let navbarResizeObserver: ResizeObserver | undefined
+const { fallbackImage, handleImageError } = useImageFallback()
 
 const props = defineProps<{
   products: Product[]
@@ -46,7 +47,7 @@ const searchResults = computed(() => {
 
   return props.products
     .filter((product) => product.name.toLocaleLowerCase().includes(query))
-    .slice(0, 7)
+    .slice(0, 5)
 })
 
 watch(
@@ -77,15 +78,12 @@ const handleLogout = async () => {
       return
     }
 
-    authStore.setUser(null)
-    router.replace('/login')
+    cart.clearCart()
+    router.replace('/')
   } finally {
     isLoggingOut.value = false
   }
 }
-
-// disconnect the ResizeObserver that was watching the navbar’s size
-onBeforeUnmount(() => navbarResizeObserver?.disconnect())
 </script>
 
 <template>
@@ -131,19 +129,27 @@ onBeforeUnmount(() => navbarResizeObserver?.disconnect())
           </ComboboxAnchor>
 
           <ComboboxList class="max-h-64 w-(--reka-combobox-trigger-width) z-60">
-            <ComboboxEmpty>No products found.</ComboboxEmpty>
-
-            <ComboboxGroup>
-              <ComboboxItem
-                v-for="product in searchResults"
-                :key="product.id"
-                :value="product"
-                class="pb-2"
-                @select="handleProductSelect(product)"
-              >
-                {{ product.name }}
-              </ComboboxItem>
-            </ComboboxGroup>
+            <ComboboxViewport>
+              <ComboboxEmpty>No products found.</ComboboxEmpty>
+              <ComboboxGroup>
+                <ComboboxItem
+                  v-for="product in searchResults"
+                  :key="product.id"
+                  :value="product"
+                  class="flex items-center gap-3 py-2 hover:cursor-pointer"
+                  @select="handleProductSelect(product)"
+                >
+                  <img
+                    :src="product.image || fallbackImage"
+                    alt=""
+                    loading="lazy"
+                    class="size-10 shrink-0 rounded object-cover"
+                    @error="handleImageError"
+                  />
+                  <span class="min-w-0 truncate">{{ product.name }}</span>
+                </ComboboxItem>
+              </ComboboxGroup>
+            </ComboboxViewport>
           </ComboboxList>
         </Combobox>
       </div>

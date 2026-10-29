@@ -1,61 +1,65 @@
-import ShopLayout from '@/layouts/ShopLayout.vue'
-import {
-  CartView,
-  HomeView,
-  LoginView,
-  NotFoundView,
-  ProductDetailView,
-  ProfileView,
-  RegisterView,
-} from '@/views'
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      component: ShopLayout,
+      component: () => import('@/layouts/ShopLayout.vue'),
       children: [
         {
           path: '',
           name: 'home',
-          component: HomeView,
+          component: () => import('@/views/HomeView.vue'),
         },
         {
           path: 'profile',
           name: 'profile',
-          component: ProfileView,
+          component: () => import('@/views/ProfileView.vue'),
+          meta: { requiresAuth: true },
         },
         {
           path: 'product/:name',
           name: 'product-detail',
-          component: ProductDetailView,
+          component: () => import('@/views/ProductDetailView.vue'),
         },
 
         {
           path: 'cart',
           name: 'cart',
-          component: CartView,
+          component: () => import('@/views/CartView.vue'),
+          meta: { requiresAuth: true },
         },
       ],
     },
     {
       path: '/login',
       name: 'login',
-      component: LoginView,
+      component: () => import('@/views/LoginView.vue'),
     },
     {
       path: '/register',
       name: 'register',
-      component: RegisterView,
+      component: () => import('@/views/RegisterView.vue'),
     },
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
-      component: NotFoundView,
+      component: () => import('@/views/NotFoundView.vue'),
     },
   ],
+
+  // scrollBehavior() {
+  //   return { top: 0 }
+  // },
+})
+
+// redirect to login page for protected routes
+router.beforeEach((to) => {
+  if (to.meta.requiresAuth && !useAuthStore().isAuth) {
+    return { name: 'login' }
+  }
 })
 
 export default router
