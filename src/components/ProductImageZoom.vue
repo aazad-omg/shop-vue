@@ -137,8 +137,8 @@ onUnmounted(() => {
 <template>
   <div class="relative w-full">
     <div
+      :class="{ 'cursor-zoom-in': canZoom && !isFallbackImage }"
       class="w-full cursor-default"
-      :class="{ 'cursor-crosshair': canZoom && !isFallbackImage }"
       @mouseenter="showZoom"
       @mouseleave="isZooming = false"
       @mousemove="moveLens"
@@ -159,7 +159,7 @@ onUnmounted(() => {
       <div
         v-show="isZooming"
         ref="lensRef"
-        class="pointer-events-none absolute h-25 w-25 border border-[#888] bg-blue-500/25"
+        class="pointer-events-none absolute h-25 w-25 border border-[#888] bg-red-500/25"
       />
       <div
         v-show="isZooming"

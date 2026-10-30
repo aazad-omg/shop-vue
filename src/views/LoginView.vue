@@ -57,19 +57,26 @@ const onSubmit = async () => {
     localStorage.removeItem(rememberedEmailKey)
   }
 
-  await router.replace('/')
+  // redirect after successful login
+  const redirect = router.currentRoute.value.query.redirect
+  const isSafeRedirect =
+    typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//')
+
+  const destination = isSafeRedirect ? redirect : '/'
+
+  await router.replace(destination)
 }
 </script>
 
 <template>
   <div
-    class="mx-auto my-10 flex w-full max-w-lg flex-col gap-5 rounded-2xl border border-amber-900/15 bg-white p-10 shadow-2xl shadow-amber-950/25"
+    class="mx-auto my-10 flex w-full max-w-lg flex-col gap-5 rounded-2xl md:border border-amber-900/15 bg-white p-10 md:shadow-2xl shadow-amber-950/25"
   >
-    <div class="text-center text-3xl font-bold tracking-wide text-amber-800">SHOPVUE</div>
-    <div><p class="text-center text-2xl font-semibold">Login</p></div>
+    <div class="text-center text-3xl font-bold tracking-wide text-brand-900">SHOPVUE</div>
+    <div><p class="text-center text-2xl text-brand font-semibold">Login</p></div>
     <form novalidate @submit.prevent="onSubmit">
       <div class="mb-4">
-        <Label for="email" class="py-2 text-lg">Email</Label>
+        <Label for="email" class="py-2 text-lg text-brand-900">Email</Label>
 
         <InputGroup
           class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
@@ -90,7 +97,7 @@ const onSubmit = async () => {
       </div>
 
       <div class="mb-4">
-        <Label for="password" class="py-2 text-lg">Password</Label>
+        <Label for="password" class="py-2 text-lg text-brand-900">Password</Label>
 
         <InputGroup
           class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
@@ -129,7 +136,7 @@ const onSubmit = async () => {
           type="checkbox"
           class="size-5 accent-brand-700"
         />
-        <Label for="remember-me">Remember me</Label>
+        <Label for="remember-me" class="text-brand-900">Remember me</Label>
       </div>
 
       <div class="mt-2 flex justify-center pt-2">
@@ -143,11 +150,13 @@ const onSubmit = async () => {
         </Button>
       </div>
       <div class="my-4 text-center text-sm text-gray-400">--------------or---------------</div>
-      <div class="flex justify-center gap-1 text-base">
+      <div class="flex justify-center gap-1 text-base Zoom">
         Dont have an account?
         <span
           ><RouterLink to="/register"
-            ><p class="text-blue-500 font-semibold hover:underline">Register</p></RouterLink
+            ><p class="text-brand-500 hover:text-brand font-bold hover:underline">
+              Register
+            </p></RouterLink
           ></span
         >
       </div>

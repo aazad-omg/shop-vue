@@ -140,7 +140,7 @@ const handleInteractOutside = (event: Event) => {
         </div>
         <p class="mt-1 text-sm text-stone-500">Shipping and taxes calculated at checkout.</p>
         <RouterLink
-          to="/cart"
+          to="/purchase"
           class="mt-4 flex min-h-11 items-center justify-center rounded-md bg-brand px-4 text-sm font-semibold text-white transition-colors hover:bg-amber-800"
           @click="cart.closeDrawer"
           >Proceed to checkout

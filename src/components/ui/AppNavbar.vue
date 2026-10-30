@@ -11,12 +11,13 @@ import {
 } from '@/components/ui'
 import { NepaliRupee, ShoppingCart, XIcon } from '@lucide/vue'
 import type { Product } from '@/types'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore, useCartStore } from '@/stores'
 import { supabase } from '@/supabase'
 import { CartDrawer } from '@/components/cart'
 import { useImageFallback } from '@/composables'
+import FullPageSpinner from './FullPageSpinner.vue'
 
 const router = useRouter()
 const cart = useCartStore()
@@ -31,6 +32,7 @@ const props = defineProps<{
 const selectedProduct = ref<Product | undefined>(props.initialProduct)
 const searchTerm = ref(props.initialProduct?.name ?? '')
 const isLoggingOut = ref<boolean>(false)
+const navbarElement = ref<HTMLElement | null>(null)
 const userInitial = computed(() => {
   const name =
     authStore.user?.user_metadata?.full_name ??
@@ -63,6 +65,21 @@ const clearSearch = () => {
   searchTerm.value = ''
 }
 
+const handleSearchShortcut = (event: KeyboardEvent) => {
+  if (
+    event.defaultPrevented ||
+    event.altKey ||
+    event.shiftKey ||
+    !(event.ctrlKey || event.metaKey) ||
+    event.key.toLocaleLowerCase() !== 'k'
+  ) {
+    return
+  }
+
+  event.preventDefault()
+  navbarElement.value?.querySelector<HTMLInputElement>('[data-slot="command-input"]')?.focus()
+}
+
 const handleProductSelect = (product: Product) => {
   router.push(`/product/${product.slug}`)
 }
@@ -74,19 +91,25 @@ const handleLogout = async () => {
     const { error } = await supabase.auth.signOut()
 
     if (error) {
+      // Display error message with a toast
       alert(error.message)
       return
     }
-
+    // Display toast on succesfull signout as well
     cart.clearCart()
     router.replace('/')
   } finally {
     isLoggingOut.value = false
   }
 }
+
+onMounted(() => window.addEventListener('keydown', handleSearchShortcut))
+onUnmounted(() => window.removeEventListener('keydown', handleSearchShortcut))
 </script>
 
 <template>
+  <FullPageSpinner :loading="isLoggingOut" />
+
   <nav
     ref="navbarElement"
     class="sticky top-0 z-45 w-full border-b border-stone-200 bg-white/95 text-stone-800 shadow-sm backdrop-blur"
@@ -111,7 +134,7 @@ const handleLogout = async () => {
           >
             <ComboboxInput
               v-model="searchTerm"
-              placeholder="Search products..."
+              placeholder="Search products... (Ctrl+K / Cmd+K)"
               :display-value="displayProduct"
               class="h-10 min-w-0 flex-1 border-0 px-3"
             />
@@ -157,17 +180,10 @@ const handleLogout = async () => {
       <div
         class="col-start-2 row-start-1 flex shrink-0 items-center justify-self-end gap-1 sm:gap-2 md:col-start-3 md:gap-3 lg:gap-4"
       >
-        <RouterLink
-          v-if="authStore.isAuth"
-          to="/profile"
-          class="rounded-full px-3 py-2 text-xl font-semibold transition-colors hover:bg-stone-100"
-        >
-          Profile
-        </RouterLink>
         <button
           type="button"
           aria-label="Open cart"
-          class="relative inline-flex items-center justify-center p-2"
+          class="relative inline-flex items-center justify-center p-2 hover:cursor-pointer"
           @click="cart.openDrawer"
         >
           <ShoppingCart :size="30" color="#2a3a5e" :stroke-width="2.5" />
@@ -194,10 +210,10 @@ const handleLogout = async () => {
           v-if="authStore.isAuth"
           type="button"
           :disabled="isLoggingOut"
-          class="rounded-full px-3 py-2 font-semibold transition-colors hover:bg-stone-100"
+          class="rounded-full px-3 py-2 text-xl font-semibold transition-colors hover:bg-stone-100 hover:cursor-pointer"
           @click="handleLogout"
         >
-          {{ isLoggingOut ? 'Logging out...' : 'Log out' }}
+          Log out
         </button>
 
         <RouterLink
