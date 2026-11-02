@@ -7,6 +7,11 @@ import type { Product } from '@/types'
 import { useCartStore, useProductStore } from '@/stores'
 import { storeToRefs } from 'pinia'
 
+const productStore = useProductStore()
+const cart = useCartStore()
+// use reactively even while destructuring
+const { products, isLoading, error } = storeToRefs(productStore)
+
 const categories = ref<string[]>([
   'All goods',
   'Kitchen',
@@ -18,19 +23,15 @@ const categories = ref<string[]>([
   'Stationery',
   'Seasonal markdowns',
 ])
-
-const productStore = useProductStore()
-// use reactively even while destructuring
-const { products, isLoading, error } = storeToRefs(productStore)
+const selectedCategory = ref('All goods')
 
 onMounted(() => productStore.fetchProducts())
-const selectedCategory = ref('All goods')
+
 const filteredProducts = computed(() =>
   selectedCategory.value === 'All goods'
     ? products.value
     : products.value.filter((product) => product.categories.includes(selectedCategory.value)),
 )
-const cart = useCartStore()
 
 const addCurrentProductToCart = (product: Product) => {
   cart.addToCart(product, 1)
@@ -52,7 +53,7 @@ const addCurrentProductToCart = (product: Product) => {
         <li v-for="category in categories" :key="category" class="shrink-0 lg:shrink">
           <button
             type="button"
-            class="h-full rounded-full px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:text-base lg:w-full lg:whitespace-normal lg:px-2"
+            class="h-full rounded-full px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:text-base lg:w-full lg:whitespace-normal lg:px-2 hover:cursor-pointer"
             :class="
               selectedCategory === category
                 ? 'bg-brand text-white shadow-sm'

@@ -62,14 +62,14 @@ const onSubmit = async () => {
 
 <template>
   <div
-    class="mx-auto my-10 flex w-full max-w-lg flex-col gap-5 rounded-2xl border border-amber-900/15 bg-white p-10 shadow-2xl shadow-amber-950/25"
+    class="mx-auto my-10 flex w-full max-w-lg flex-col gap-5 rounded-2xl md:border border-amber-900/15 bg-white p-10 md:shadow-2xl shadow-amber-950/25"
   >
-    <div class="text-center text-3xl font-bold tracking-wide text-amber-800">SHOPVUE</div>
-    <div><p class="text-center text-2xl font-semibold">Create your account</p></div>
+    <div class="text-center text-3xl font-bold tracking-wide text-brand-900">SHOPVUE</div>
+    <div><p class="text-center text-2xl font-semibold text-brand">Create your account</p></div>
 
     <form novalidate @submit.prevent="onSubmit">
       <div class="">
-        <Label for="name" class="py-2 text-lg">Name</Label>
+        <Label for="name" class="py-2 text-lg text-brand-900">Name</Label>
 
         <InputGroup
           class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
@@ -90,7 +90,7 @@ const onSubmit = async () => {
       </div>
 
       <div class="">
-        <Label for="email" class="py-2 text-lg">Email</Label>
+        <Label for="email" class="py-2 text-lg text-brand-900">Email</Label>
 
         <InputGroup
           class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
@@ -111,7 +111,7 @@ const onSubmit = async () => {
       </div>
 
       <div class="">
-        <Label for="password" class="py-2 text-lg">Password</Label>
+        <Label for="password" class="py-2 text-lg text-brand-900">Password</Label>
 
         <InputGroup
           class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
@@ -143,7 +143,7 @@ const onSubmit = async () => {
       </div>
 
       <div class="">
-        <Label for="confirmPassword" class="py-2 text-lg">Confirm Password</Label>
+        <Label for="confirmPassword" class="py-2 text-lg text-brand-900">Confirm Password</Label>
 
         <InputGroup
           class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
@@ -185,11 +185,11 @@ const onSubmit = async () => {
         </Button>
       </div>
 
-      <div class="flex justify-center items-center mt-4 text-center text-base text-gray-400">
+      <div class="flex justify-center items-center mt-4 text-center text-base text-brand-700">
         Already have an account?
         <span class="ml-1">
           <RouterLink to="/login">
-            <p class="text-blue-500 hover:underline font-semibold">Login</p>
+            <p class="text-brand-500 hover:text-brand hover:underline font-bold">Login</p>
           </RouterLink></span
         >
       </div>

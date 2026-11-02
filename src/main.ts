@@ -11,9 +11,11 @@ const app = createApp(App)
 const pinia = createPinia()
 
 app.use(pinia)
+app.use(router)
 
 // intial hydration of auth values from supabase's browser storage
+// create a bootstrap/init file
+// dont directly use vue features in main.ts
 await useAuthStore(pinia).initialize()
-app.use(router)
 
 app.mount('#app')

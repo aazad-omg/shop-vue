@@ -14,10 +14,7 @@ const productStore = useProductStore()
 // use reactively even while destructuring
 const { products, isLoading, error } = storeToRefs(productStore)
 
-// Fetch product list if empty
-onMounted(() => {
-  if (products.value.length === 0) productStore.fetchProducts()
-})
+const cart = useCartStore()
 
 // Find the product name from the slug
 const currentProduct = computed(() =>
@@ -30,7 +27,10 @@ const recommendedProducts = computed(() => {
 
 const quantity = ref<number>(1)
 
-const cart = useCartStore()
+// Fetch product list if empty
+onMounted(() => {
+  if (products.value.length === 0) productStore.fetchProducts()
+})
 
 const addProductToCart = (product: Product, amount = 1) => {
   cart.addToCart(product, amount)

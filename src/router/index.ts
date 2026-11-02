@@ -26,9 +26,9 @@ const router = createRouter({
         },
 
         {
-          path: 'cart',
-          name: 'cart',
-          component: () => import('@/views/CartView.vue'),
+          path: 'purchase',
+          name: 'purchase',
+          component: () => import('@/views/PurchaseView.vue'),
           meta: { requiresAuth: true },
         },
       ],
@@ -58,7 +58,7 @@ const router = createRouter({
 // redirect to login page for protected routes
 router.beforeEach((to) => {
   if (to.meta.requiresAuth && !useAuthStore().isAuth) {
-    return { name: 'login' }
+    return { name: 'login', query: { redirect: to.fullPath } }
   }
 })
 
