@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useMediaQuery } from '@vueuse/core'
 import {
   Combobox,
   ComboboxAnchor,
@@ -51,6 +52,8 @@ const searchResults = computed(() => {
     .filter((product) => product.name.toLocaleLowerCase().includes(query))
     .slice(0, 5)
 })
+
+const isAboveMd = useMediaQuery('(min-width: 48rem)')
 
 watch(
   () => props.initialProduct,
@@ -134,7 +137,11 @@ onUnmounted(() => window.removeEventListener('keydown', handleSearchShortcut))
           >
             <ComboboxInput
               v-model="searchTerm"
-              placeholder="Search products... (Ctrl+K / Cmd+K)"
+              :placeholder="
+                isAboveMd
+                  ? 'Search products... (Ctrl+K / Cmd+K)'
+                  : 'Search products...'
+              "
               :display-value="displayProduct"
               class="h-10 min-w-0 flex-1 border-0 px-3"
             />

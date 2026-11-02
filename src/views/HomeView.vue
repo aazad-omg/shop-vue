@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import { ProductCard, ProductCardSkeleton } from '@/components'
 import type { Product } from '@/types'
@@ -9,8 +9,10 @@ import { storeToRefs } from 'pinia'
 
 const productStore = useProductStore()
 const cart = useCartStore()
+const route = useRoute()
+const router = useRouter()
 // use reactively even while destructuring
-const { products, isLoading, error } = storeToRefs(productStore)
+const { products, categoryProducts, isLoading, error } = storeToRefs(productStore)
 
 const categories = ref<string[]>([
   'All goods',
@@ -25,14 +27,37 @@ const categories = ref<string[]>([
 ])
 const selectedCategory = ref('All goods')
 
-onMounted(() => productStore.fetchProducts())
+const routeCategory = () => (typeof route.query.category === 'string' ? route.query.category : '')
 
-const filteredProducts = computed(() =>
-  selectedCategory.value === 'All goods'
-    ? products.value
-    : products.value.filter((product) => product.categories.includes(selectedCategory.value)),
+onMounted(() => {
+  // Make the api call but dont wait for it to finish,
+  if (!routeCategory()) void productStore.fetchProducts()
+})
+
+const selectCategory = (category: string) => {
+  router.push({
+    query: {
+      ...route.query,
+      category: category === 'All goods' ? undefined : category,
+    },
+  })
+}
+
+// watch the route query parameter for category changes and fetch products accordingly
+watch(
+  () => route.query.category,
+  async (value) => {
+    const category = typeof value === 'string' ? value : ''
+    selectedCategory.value = category || 'All goods'
+    if (!category || category === 'All goods') return
+    await productStore.fetchProductsByCategory(category)
+  },
+  { immediate: true },
 )
 
+const displayedProducts = computed(() =>
+  selectedCategory.value === 'All goods' ? products.value : categoryProducts.value,
+)
 const addCurrentProductToCart = (product: Product) => {
   cart.addToCart(product, 1)
   cart.openDrawer()
@@ -60,7 +85,7 @@ const addCurrentProductToCart = (product: Product) => {
                 : 'text-stone-600 hover:bg-stone-100 hover:text-brand'
             "
             :aria-pressed="selectedCategory === category"
-            @click="selectedCategory = category"
+            @click="selectCategory(category)"
           >
             {{ category }}
           </button>
@@ -85,7 +110,7 @@ const addCurrentProductToCart = (product: Product) => {
       <div v-else class="mt-8">
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <RouterLink
-            v-for="product in filteredProducts"
+            v-for="product in displayedProducts"
             :key="product.id"
             :to="`/product/${product.slug}`"
             class="block transition-all duration-200 ease-out hover:-translate-y-1 hover:cursor-pointer"
@@ -94,7 +119,7 @@ const addCurrentProductToCart = (product: Product) => {
           </RouterLink>
         </div>
 
-        <p v-if="filteredProducts.length === 0" class="py-16 text-center text-stone-600">
+        <p v-if="displayedProducts.length === 0" class="py-16 text-center text-stone-600">
           No products in this category yet.
         </p>
       </div>
