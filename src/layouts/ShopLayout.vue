@@ -19,7 +19,7 @@ const currentProduct = computed(() =>
 </script>
 
 <template>
-  <AppNavbar :products="products" :initial-product="currentProduct" />
+  <AppNavbar :initial-product="currentProduct" />
 
   <main>
     <RouterView />

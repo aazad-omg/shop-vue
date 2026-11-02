@@ -1,31 +1,37 @@
 import { defineStore } from 'pinia'
-import { supabase } from '@/supabase'
 import type { Product } from '@/types'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
+import { useProducts } from '@/composables/useProducts'
 
 export const useProductStore = defineStore('products', () => {
   const products = ref<Product[]>([])
   const isLoading = ref<boolean>(false)
   const error = ref<string | null>(null)
 
-  const fetchProducts = async () => {
+  const {
+    products: fetchedProducts,
+    error: fetchProductsError,
+    fetchProducts: fetchProductList,
+  } = useProducts({ limit: 20 })
+
+  const getProducts = async () => {
     isLoading.value = true
     error.value = null
-    try {
-      const { data, error: queryError } = await supabase
-        .from('products')
-        .select('id, image, name, slug, subtitle, categories, price, description')
-        .order('name')
 
-      if (queryError) throw queryError
+    await fetchProductList()
 
-      products.value = data ?? []
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to load products'
-    } finally {
-      isLoading.value = false
+    if (!fetchProductsError.value) {
+      products.value = fetchedProducts.value
     }
+
+    error.value = fetchProductsError.value
+    isLoading.value = false
   }
 
-  return { products, isLoading, error, fetchProducts }
+  return {
+    products,
+    isLoading,
+    error,
+    fetchProducts: getProducts,
+  }
 })
