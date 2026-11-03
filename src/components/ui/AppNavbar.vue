@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useMediaQuery } from '@vueuse/core'
 import {
   Combobox,
   ComboboxAnchor,
@@ -16,16 +17,16 @@ import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore, useCartStore } from '@/stores'
 import { supabase } from '@/supabase'
 import { CartDrawer } from '@/components/cart'
-import { useImageFallback } from '@/composables'
+import { useImageFallback, useProducts } from '@/composables'
 import FullPageSpinner from './FullPageSpinner.vue'
 
 const router = useRouter()
 const cart = useCartStore()
 const authStore = useAuthStore()
+
 const { fallbackImage, handleImageError } = useImageFallback()
 
 const props = defineProps<{
-  products: Product[]
   initialProduct?: Product
 }>()
 
@@ -33,6 +34,19 @@ const selectedProduct = ref<Product | undefined>(props.initialProduct)
 const searchTerm = ref(props.initialProduct?.name ?? '')
 const isLoggingOut = ref<boolean>(false)
 const navbarElement = ref<HTMLElement | null>(null)
+let searchDebounceTimeout: ReturnType<typeof setTimeout> | undefined
+
+const {
+  products: searchResults,
+  isLoading: isSearching,
+  error: searchError,
+  fetchProducts: fetchProductSearch,
+  cancelFetch: cancelProductSearch,
+} = useProducts(() => ({
+  searchTerm: searchTerm.value,
+  limit: 5,
+}))
+
 const userInitial = computed(() => {
   const name =
     authStore.user?.user_metadata?.full_name ??
@@ -44,12 +58,24 @@ const userInitial = computed(() => {
 })
 
 const displayProduct = (product: Product | undefined) => product?.name ?? ''
-const searchResults = computed(() => {
-  const query = searchTerm.value.trim().toLocaleLowerCase()
 
-  return props.products
-    .filter((product) => product.name.toLocaleLowerCase().includes(query))
-    .slice(0, 5)
+const isAboveMd = useMediaQuery('(min-width: 48rem)')
+
+watch(searchTerm, (term) => {
+  if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout)
+
+  searchError.value = null
+
+  if (!term.trim() || selectedProduct.value?.name === term) {
+    cancelProductSearch()
+    searchResults.value = []
+    return
+  }
+
+  searchDebounceTimeout = setTimeout(() => {
+    searchDebounceTimeout = undefined
+    void fetchProductSearch()
+  }, 300)
 })
 
 watch(
@@ -81,7 +107,10 @@ const handleSearchShortcut = (event: KeyboardEvent) => {
 }
 
 const handleProductSelect = (product: Product) => {
-  router.push(`/product/${product.slug}`)
+  router.push({
+    path: `/product/${product.slug}`,
+    state: { productId: String(product.id) },
+  })
 }
 
 const handleLogout = async () => {
@@ -104,7 +133,10 @@ const handleLogout = async () => {
 }
 
 onMounted(() => window.addEventListener('keydown', handleSearchShortcut))
-onUnmounted(() => window.removeEventListener('keydown', handleSearchShortcut))
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleSearchShortcut)
+  if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout)
+})
 </script>
 
 <template>
@@ -134,7 +166,9 @@ onUnmounted(() => window.removeEventListener('keydown', handleSearchShortcut))
           >
             <ComboboxInput
               v-model="searchTerm"
-              placeholder="Search products... (Ctrl+K / Cmd+K)"
+              :placeholder="
+                isAboveMd ? 'Search products... (Ctrl+K / Cmd+K)' : 'Search products...'
+              "
               :display-value="displayProduct"
               class="h-10 min-w-0 flex-1 border-0 px-3"
             />
@@ -153,7 +187,11 @@ onUnmounted(() => window.removeEventListener('keydown', handleSearchShortcut))
 
           <ComboboxList class="max-h-64 w-(--reka-combobox-trigger-width) z-60">
             <ComboboxViewport>
-              <ComboboxEmpty>No products found.</ComboboxEmpty>
+              <ComboboxEmpty v-if="searchError">
+                Could not search products: {{ searchError }}
+              </ComboboxEmpty>
+              <ComboboxEmpty v-else-if="isSearching">Searching products...</ComboboxEmpty>
+              <ComboboxEmpty v-else-if="searchTerm.trim()">No products found.</ComboboxEmpty>
               <ComboboxGroup>
                 <ComboboxItem
                   v-for="product in searchResults"

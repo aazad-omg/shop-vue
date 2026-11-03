@@ -2,35 +2,42 @@
 import { ProductCard, ProductCardSkeleton, ProductImageZoom } from '@/components'
 import { Card } from '@/components/'
 import { useCartStore, useProductStore } from '@/stores'
+import { useProducts } from '@/composables'
 import type { Product } from '@/types'
 import { NepaliRupee } from '@lucide/vue'
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-
 const productStore = useProductStore()
 // use reactively even while destructuring
-const { products, isLoading, error } = storeToRefs(productStore)
+const { products } = storeToRefs(productStore)
+const { fetchProductById, isLoading, error } = useProducts()
 
 const cart = useCartStore()
 
-// Find the product name from the slug
-const currentProduct = computed(() =>
-  products.value.find((product) => product.slug === String(route.params.name ?? '')),
-)
+const currentProduct = ref<Product | null>(null)
 // Any four products but the current one
 const recommendedProducts = computed(() => {
   return products.value.filter((candidate) => candidate.id !== currentProduct.value?.id).slice(0, 4)
 })
 
 const quantity = ref<number>(1)
+let productRequestId = 0
 
-// Fetch product list if empty
-onMounted(() => {
-  if (products.value.length === 0) productStore.fetchProducts()
-})
+watch(
+  () => route.params.name,
+  async () => {
+    console.log('history.state:', history.state.productId)
+    const requestId = ++productRequestId
+    currentProduct.value = null
+    const id = history.state.productId
+    const product = await fetchProductById(id)
+    if (requestId === productRequestId) currentProduct.value = product
+  },
+  { immediate: true },
+)
 
 const addProductToCart = (product: Product, amount = 1) => {
   cart.addToCart(product, amount)
@@ -119,7 +126,10 @@ const addCurrentProductToCart = () => {
             <RouterLink
               v-for="product in recommendedProducts"
               :key="product.id"
-              :to="`/product/${product.slug}`"
+              :to="{
+                path: `/product/${product.slug}`,
+                state: { productId: String(product.id) },
+              }"
               class="block transition-all duration-200 ease-out hover:-translate-y-1 hover:cursor-pointer"
             >
               <ProductCard :product="product" :add-to-cart="() => addProductToCart(product)" />
