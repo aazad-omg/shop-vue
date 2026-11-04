@@ -3,8 +3,15 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { supabase } from '@/supabase'
 
+type Profile = {
+  full_name: string | null
+  email: string | null
+  phone_number: string | null
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
+  const profile = ref<Profile | null>(null)
   const isAuth = ref(false)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
@@ -40,7 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
         password,
         options: {
           data: {
-            name,
+            full_name: name,
           },
         },
       })
@@ -51,6 +58,92 @@ export const useAuthStore = defineStore('auth', () => {
       return false
     } finally {
       isLoading.value = false
+    }
+  }
+
+  const updateProfile = async (name: string, email: string, phone: string) => {
+    if (!user.value) {
+      error.value = 'You must be signed in to update your profile'
+      return false
+    }
+
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .upsert(
+          {
+            id: user.value.id,
+            full_name: name,
+            email,
+            phone_number: phone,
+          },
+          { onConflict: 'id' },
+        )
+        .select('full_name, email, phone_number')
+        .single()
+      if (error) throw error
+      profile.value = data
+
+      return true
+    } catch (updateError: unknown) {
+      error.value = updateError instanceof Error ? updateError.message : 'Profile update failed'
+      return false
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const fetchProfile = async () => {
+    if (!user.value) {
+      error.value = 'You must be signed in to view your profile'
+      return false
+    }
+
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('profiles')
+        .select('full_name, email, phone_number')
+        .eq('id', user.value.id)
+        .maybeSingle()
+
+      if (fetchError) throw fetchError
+
+      profile.value = data
+      return true
+    } catch (fetchError: unknown) {
+      error.value = fetchError instanceof Error ? fetchError.message : 'Profile load failed'
+      return false
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const resetAuth = () => {
+    user.value = null
+    profile.value = null
+    isAuth.value = false
+    error.value = null
+  }
+
+  const signOut = async () => {
+    error.value = null
+
+    try {
+      const { error: signOutError } = await supabase.auth.signOut()
+
+      if (signOutError) throw signOutError
+
+      resetAuth()
+      return true
+    } catch (signOutError: unknown) {
+      error.value = signOutError instanceof Error ? signOutError.message : 'Logout failed'
+      return false
     }
   }
 
@@ -71,5 +164,17 @@ export const useAuthStore = defineStore('auth', () => {
     isInitialized = true
   }
 
-  return { user, isAuth, isLoading, error, initialize, signIn, signUp }
+  return {
+    user,
+    profile,
+    isAuth,
+    isLoading,
+    error,
+    initialize,
+    signIn,
+    signUp,
+    updateProfile,
+    fetchProfile,
+    signOut,
+  }
 })
