@@ -130,10 +130,7 @@ const addCurrentProductToCart = (product: Product) => {
           <RouterLink
             v-for="product in displayedProducts"
             :key="product.id"
-            :to="{
-              path: `/product/${product.slug}`,
-              state: { productId: String(product.id) },
-            }"
+            :to="`/product/${product.slug}/${product.id}`"
             class="block transition-all duration-200 ease-out hover:-translate-y-1 hover:cursor-pointer"
           >
             <ProductCard :product="product" :add-to-cart="() => addCurrentProductToCart(product)" />

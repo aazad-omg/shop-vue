@@ -51,7 +51,9 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
         query = query.limit(refOptions.limit)
       }
 
-      const response = await query.order('name', { ascending: true })
+      const response = await query
+        .order('name', { ascending: true })
+        .abortSignal(controller.signal)
 
       if (response.error) throw response.error
 
@@ -92,14 +94,19 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
     error.value = null
 
     try {
-      const response = await supabase.from('products').select('*').eq('id', id).maybeSingle()
+      const response = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .abortSignal(controller.signal)
+        .maybeSingle()
 
       if (response.error) throw response.error
 
       return currentRequestId === requestId ? response.data : null
     } catch (err) {
-      console.error('Error fetching product:', err)
       if (currentRequestId === requestId && !controller.signal.aborted) {
+        console.error('Error fetching product:', err)
         if (err instanceof Error) {
           error.value = err.message
         } else if (

@@ -27,12 +27,11 @@ const quantity = ref<number>(1)
 let productRequestId = 0
 
 watch(
-  () => route.params.name,
+  () => route.params.id,
   async () => {
-    console.log('history.state:', history.state.productId)
     const requestId = ++productRequestId
     currentProduct.value = null
-    const id = history.state.productId
+    const id = String(route.params.id ?? '')
     const product = await fetchProductById(id)
     if (requestId === productRequestId) currentProduct.value = product
   },
@@ -126,10 +125,7 @@ const addCurrentProductToCart = () => {
             <RouterLink
               v-for="product in recommendedProducts"
               :key="product.id"
-              :to="{
-                path: `/product/${product.slug}`,
-                state: { productId: String(product.id) },
-              }"
+              :to="`/product/${product.slug}/${product.id}`"
               class="block transition-all duration-200 ease-out hover:-translate-y-1 hover:cursor-pointer"
             >
               <ProductCard :product="product" :add-to-cart="() => addProductToCart(product)" />

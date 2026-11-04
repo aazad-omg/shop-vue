@@ -14,7 +14,7 @@ const { products, isLoading, error } = storeToRefs(productStore)
 
 // Find the product name from the slug
 const currentProduct = computed(() =>
-  products.value.find((product) => product.slug === String(route.params.name ?? '')),
+  products.value.find((product) => product.slug === String(route.params.slug ?? '')),
 )
 </script>
 

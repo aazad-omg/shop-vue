@@ -9,13 +9,20 @@ import {
   ComboboxItem,
   ComboboxList,
   ComboboxViewport,
-} from '@/components/ui'
-import { NepaliRupee, ShoppingCart, XIcon } from '@lucide/vue'
+} from '@/components'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components'
+import { LogOut, NepaliRupee, ShoppingCart, XIcon } from '@lucide/vue'
 import type { Product } from '@/types'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore, useCartStore } from '@/stores'
-import { supabase } from '@/supabase'
 import { CartDrawer } from '@/components/cart'
 import { useImageFallback, useProducts } from '@/composables'
 import FullPageSpinner from './FullPageSpinner.vue'
@@ -107,21 +114,18 @@ const handleSearchShortcut = (event: KeyboardEvent) => {
 }
 
 const handleProductSelect = (product: Product) => {
-  router.push({
-    path: `/product/${product.slug}`,
-    state: { productId: String(product.id) },
-  })
+  router.push(`/product/${product.slug}/${product.id}`)
 }
 
 const handleLogout = async () => {
   isLoggingOut.value = true
 
   try {
-    const { error } = await supabase.auth.signOut()
+    const signedOut = await authStore.signOut()
 
-    if (error) {
+    if (!signedOut) {
       // Display error message with a toast
-      alert(error.message)
+      alert(authStore.error ?? 'Logout failed')
       return
     }
     // Display toast on succesfull signout as well
@@ -166,9 +170,7 @@ onUnmounted(() => {
           >
             <ComboboxInput
               v-model="searchTerm"
-              :placeholder="
-                isAboveMd ? 'Search products... (Ctrl+K / Cmd+K)' : 'Search products...'
-              "
+              :placeholder="isAboveMd ? 'Search products... (Ctrl+K / ⌘+K)' : 'Search products...'"
               :display-value="displayProduct"
               class="h-10 min-w-0 flex-1 border-0 px-3"
             />
@@ -236,30 +238,59 @@ onUnmounted(() => {
         </button>
 
         <RouterLink
-          v-if="authStore.isAuth"
-          to="/profile"
-          :aria-label="`Open ${authStore.user?.user_metadata?.full_name ?? authStore.user?.user_metadata?.name ?? 'profile'}`"
-          class="inline-flex size-10 items-center justify-center rounded-full bg-brand font-semibold text-white transition-colors hover:bg-brand/90"
-        >
-          {{ userInitial }}
-        </RouterLink>
-
-        <button
-          v-if="authStore.isAuth"
-          type="button"
-          :disabled="isLoggingOut"
-          class="rounded-full px-3 py-2 text-xl font-semibold transition-colors hover:bg-stone-100 hover:cursor-pointer"
-          @click="handleLogout"
-        >
-          Log out
-        </button>
-
-        <RouterLink
-          v-else
+          v-if="!authStore.isAuth"
           to="/login"
           class="rounded-full px-3 py-2 text-xl font-semibold transition-colors hover:bg-stone-100"
-          >Log in
+        >
+          Log in
         </RouterLink>
+
+        <DropdownMenu v-else>
+          <DropdownMenuTrigger>
+            <div
+              :aria-label="`Open ${authStore.user?.user_metadata?.full_name ?? authStore.user?.user_metadata?.name ?? 'profile'}`"
+              class="flex size-10 items-center justify-center rounded-full bg-brand font-semibold text-white transition-colors hover:bg-brand/90 hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
+            >
+              {{ userInitial }}
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            :side-offset="8"
+            class="w-52 rounded-xl border-stone-200 bg-white p-2 text-stone-800 shadow-lg"
+          >
+            <DropdownMenuLabel
+              class="px-3 py-2 text-sm font-semibold uppercase tracking-wide text-stone-500"
+            >
+              My Account
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator class="mx-1 bg-stone-200" />
+            <DropdownMenuItem class="rounded-md p-0 focus:bg-stone-100 focus:text-brand">
+              <RouterLink
+                to="/profile"
+                :aria-label="`Open ${authStore.user?.user_metadata?.full_name ?? authStore.user?.user_metadata?.name ?? 'profile'}`"
+                class="block w-full rounded-md px-3 py-2 text-lg font-medium text-stone-700 transition-colors hover:text-brand"
+              >
+                Profile
+              </RouterLink>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              class="rounded-md p-0 focus:bg-red-50 focus:text-red-700"
+              :disabled="isLoggingOut"
+            >
+              <button
+                type="button"
+                :disabled="isLoggingOut"
+                class="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-lg font-medium text-red-600 transition-colors hover:text-red-700 hover:cursor-pointer"
+                @click="handleLogout"
+              >
+                Log out
+                <LogOut :size="16" aria-hidden="true" />
+              </button>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   </nav>
