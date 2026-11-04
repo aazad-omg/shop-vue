@@ -56,7 +56,7 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
       if (response.error) throw response.error
 
       if (currentRequestId === requestId) {
-        // @ts-expect-error: TypeScript is not able to infer the type of response.data correctly
+        // @ts-ignore: TypeScript is not able to infer the type of response.data correctly
         products.value = response.data ?? []
       }
     } catch (err) {
