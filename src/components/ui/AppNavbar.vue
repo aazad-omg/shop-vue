@@ -26,6 +26,7 @@ import { useAuthStore, useCartStore } from '@/stores'
 import { CartDrawer } from '@/components/cart'
 import { useImageFallback, useProducts } from '@/composables'
 import FullPageSpinner from './FullPageSpinner.vue'
+import { toast } from 'vue-sonner'
 
 const router = useRouter()
 const cart = useCartStore()
@@ -124,8 +125,7 @@ const handleLogout = async () => {
     const signedOut = await authStore.signOut()
 
     if (!signedOut) {
-      // Display error message with a toast
-      alert(authStore.error ?? 'Logout failed')
+      toast.error(authStore.error ?? 'Logout failed')
       return
     }
     // Display toast on succesfull signout as well
@@ -251,7 +251,13 @@ onUnmounted(() => {
               :aria-label="`Open ${authStore.user?.user_metadata?.full_name ?? authStore.user?.user_metadata?.name ?? 'profile'}`"
               class="flex size-10 items-center justify-center rounded-full bg-brand font-semibold text-white transition-colors hover:bg-brand/90 hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
             >
-              {{ userInitial }}
+              <img
+                v-if="authStore.avatarUrl"
+                :src="authStore.avatarUrl"
+                alt=""
+                class="size-full rounded-full object-cover"
+              />
+              <span v-else>{{ userInitial }}</span>
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent

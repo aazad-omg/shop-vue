@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores'
 import useVuelidate from '@vuelidate/core'
 import { Button, InputGroup, InputGroupAddon, InputGroupInput, Label, Spinner } from '@/components'
 import { Eye, EyeOff } from '@lucide/vue'
+import { toast } from 'vue-sonner'
 import { email as emailValidator, minLength, required } from '@vuelidate/validators'
 
 const router = useRouter()
@@ -47,7 +48,7 @@ const onSubmit = async () => {
   const signedIn = await authStore.signIn(email.value, password.value)
 
   if (!signedIn) {
-    alert(error.value ?? 'Login failed')
+    toast.error(error.value ?? 'Login failed')
     return
   }
 

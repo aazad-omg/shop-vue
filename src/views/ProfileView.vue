@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import useVuelidate from '@vuelidate/core'
 import { email as emailValidator, minLength, required } from '@vuelidate/validators'
 import { toast } from 'vue-sonner'
+import { Pencil } from '@lucide/vue'
 import {
   Button,
   Card,
@@ -12,11 +13,15 @@ import {
   InputGroupInput,
   Label,
   Spinner,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from '@/components'
 import { useAuthStore } from '@/stores'
 
 const authStore = useAuthStore()
-const { user, profile, isLoading, error } = storeToRefs(authStore)
+const { user, profile, avatarUrl, isLoading, isUploadingAvatar, error } = storeToRefs(authStore)
 
 const initialName = user.value?.user_metadata?.full_name ?? user.value?.user_metadata?.name ?? ''
 const name = ref(typeof initialName === 'string' ? initialName : '')
@@ -24,6 +29,49 @@ const email = ref(user.value?.email ?? '')
 const phone = ref(user.value?.phone ?? '')
 const isEditing = ref(false)
 const savedProfile = ref({ name: name.value, email: email.value, phone: phone.value })
+const avatarInput = ref<HTMLInputElement | null>(null)
+const selectedAvatar = ref<File | null>(null)
+const avatarPreviewUrl = ref<string | null>(null)
+const avatarImageFailed = ref(false)
+const visibleAvatarUrl = computed(() =>
+  avatarImageFailed.value ? null : (avatarPreviewUrl.value ?? avatarUrl.value),
+)
+
+const onAvatarSelected = (event: Event) => {
+  const input = event.currentTarget as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  if (avatarPreviewUrl.value) URL.revokeObjectURL(avatarPreviewUrl.value)
+  selectedAvatar.value = file
+  avatarPreviewUrl.value = URL.createObjectURL(file)
+  avatarImageFailed.value = false
+}
+
+const clearAvatarSelection = () => {
+  if (avatarPreviewUrl.value) URL.revokeObjectURL(avatarPreviewUrl.value)
+  selectedAvatar.value = null
+  avatarPreviewUrl.value = null
+  if (avatarInput.value) avatarInput.value.value = ''
+}
+
+const uploadSelectedAvatar = async () => {
+  if (!selectedAvatar.value) return
+
+  const uploaded = await authStore.uploadProfileAvatar(selectedAvatar.value)
+  if (!uploaded) {
+    toast.error(error.value ?? 'Profile picture upload failed')
+    return
+  }
+
+  clearAvatarSelection()
+  avatarImageFailed.value = false
+  toast.success('Profile picture updated.')
+}
+
+onUnmounted(() => {
+  if (avatarPreviewUrl.value) URL.revokeObjectURL(avatarPreviewUrl.value)
+})
 
 const loadProfile = async () => {
   const loaded = await authStore.fetchProfile()
@@ -80,6 +128,8 @@ const toggleEditing = () => {
 }
 
 const onSubmit = async () => {
+  // toast.error('Profile updated successfully.')
+
   const isValid = await v$.value.$validate()
   if (!isValid) return
 
@@ -140,11 +190,80 @@ const memberSince = computed(() => {
 
       <section aria-label="Profile details">
         <div class="flex items-center gap-4 border-b border-stone-200 py-5">
-          <div
-            aria-hidden="true"
-            class="p-4 items-center justify-center rounded-full bg-brand text-xl font-bold text-white"
-          >
-            {{ initials }}
+          <div class="flex shrink-0 flex-col items-center gap-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <div class="group relative size-16">
+                    <input
+                      id="profile-picture"
+                      ref="avatarInput"
+                      class="sr-only"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      aria-label="Choose a profile picture"
+                      :disabled="isUploadingAvatar"
+                      @change="onAvatarSelected"
+                    />
+
+                    <!-- refine the image button -->
+                    <!-- provide an outer border -->
+                    <!-- Profile picture button -->
+                    <button
+                      type="button"
+                      class="relative flex size-full items-center justify-center overflow-hidden rounded-full bg-brand text-xl font-bold text-white transition-transform duration-150 hover:cursor-pointer group-hover:scale-[1.2]"
+                      :disabled="isUploadingAvatar"
+                      @click="avatarInput?.click()"
+                    >
+                      <img
+                        v-if="visibleAvatarUrl"
+                        :src="visibleAvatarUrl"
+                        alt=""
+                        class="size-full object-cover"
+                        @error="avatarImageFailed = true"
+                      />
+                      <span v-else aria-hidden="true">{{ initials }}</span>
+                    </button>
+
+                    <!-- Lower pencil button -->
+                    <button
+                      type="button"
+                      class="absolute bottom-0 right-0 flex size-5 items-center justify-center rounded-full border-2 border-white bg-brand text-white shadow-sm transition-colors hover:cursor-pointer hover:bg-brand/80"
+                      :disabled="isUploadingAvatar"
+                      @click="avatarInput?.click()"
+                    >
+                      <Pencil class="size-3.5" />
+                    </button>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p class="text-center text-sm">Maximum file size: 2 MB</p>
+
+                  <p class="text-center text-sm py-1">Supported formats: JPG, PNG, WebP</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <div class="flex shrink-0 flex-col items-center gap-2">
+            <div v-if="selectedAvatar" class="flex gap-2">
+              <Button
+                type="button"
+                class="bg-brand-900"
+                :disabled="isUploadingAvatar"
+                @click="uploadSelectedAvatar"
+              >
+                <Spinner v-if="isUploadingAvatar" class="size-4" />
+                {{ isUploadingAvatar ? 'Uploading…' : 'Upload' }}
+              </Button>
+              <Button
+                type="button"
+                class="border border-stone-300 bg-white text-stone-800 hover:bg-stone-100 hover:cursor-pointer"
+                :disabled="isUploadingAvatar"
+                @click="clearAvatarSelection"
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
           <div class="min-w-0">
             <h2 class="wrap-break-word text-xl font-bold text-stone-900 sm:text-2xl">
@@ -185,6 +304,8 @@ const memberSince = computed(() => {
                   autocomplete="name"
                   placeholder="Enter your name"
                   data-slot="input-group-control"
+                  class="text-stone-900 disabled:pointer-events-auto disabled:text-stone-700 disabled:opacity-100 disabled:hover:bg-red-100"
+                  :class="{ 'hover:cursor-not-allowed': !isEditing || isLoading }"
                   :disabled="!isEditing || isLoading"
                   :aria-invalid="isEditing && v$.name.$error"
                 />
@@ -207,6 +328,8 @@ const memberSince = computed(() => {
                   autocomplete="email"
                   placeholder="Enter your email"
                   data-slot="input-group-control"
+                  class="text-stone-900 disabled:pointer-events-auto disabled:text-stone-700 disabled:opacity-100 disabled:hover:bg-red-100"
+                  :class="{ 'hover:cursor-not-allowed': !isEditing || isLoading }"
                   :disabled="!isEditing || isLoading"
                   :aria-invalid="isEditing && v$.email.$error"
                 />
@@ -229,6 +352,8 @@ const memberSince = computed(() => {
                   autocomplete="tel"
                   placeholder="Enter your phone number"
                   data-slot="input-group-control"
+                  class="text-stone-900 disabled:pointer-events-auto disabled:text-stone-700 disabled:opacity-100 disabled:hover:bg-red-100"
+                  :class="{ 'hover:cursor-not-allowed': !isEditing || isLoading }"
                   :disabled="!isEditing || isLoading"
                 />
               </InputGroup>
@@ -248,7 +373,7 @@ const memberSince = computed(() => {
             <Button
               type="button"
               :disabled="isLoading"
-              class="border border-stone-300 bg-white py-5 text-stone-800 hover:bg-stone-100 sm:px-8"
+              class="border border-stone-300 bg-white py-5 text-stone-800 hover:bg-stone-100 hover:cursor-pointer sm:px-8"
               @click="toggleEditing"
             >
               Cancel

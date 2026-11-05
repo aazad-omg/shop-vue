@@ -2,18 +2,22 @@ import type { User } from '@supabase/supabase-js'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { supabase } from '@/supabase'
+import { getAvatarUrl, uploadAvatar } from '@/services'
 
 type Profile = {
   full_name: string | null
   email: string | null
   phone_number: string | null
+  avatar_path: string | null
 }
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const profile = ref<Profile | null>(null)
+  const avatarUrl = ref<string | null>(null)
   const isAuth = ref(false)
   const isLoading = ref(false)
+  const isUploadingAvatar = ref(false)
   const error = ref<string | null>(null)
   let isInitialized = false
 
@@ -28,6 +32,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       user.value = data.user
       isAuth.value = true
+      await fetchProfile()
       return true
     } catch (signInError: unknown) {
       error.value = signInError instanceof Error ? signInError.message : 'Login failed'
@@ -79,13 +84,15 @@ export const useAuthStore = defineStore('auth', () => {
             full_name: name,
             email,
             phone_number: phone,
+            avatar_path: profile.value?.avatar_path ?? null,
           },
           { onConflict: 'id' },
         )
-        .select('full_name, email, phone_number')
+        .select('full_name, email, phone_number, avatar_path')
         .single()
       if (error) throw error
       profile.value = data
+      avatarUrl.value = data.avatar_path ? await getAvatarUrl(data.avatar_path) : null
 
       return true
     } catch (updateError: unknown) {
@@ -108,13 +115,14 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const { data, error: fetchError } = await supabase
         .from('profiles')
-        .select('full_name, email, phone_number')
+        .select('full_name, email, phone_number, avatar_path')
         .eq('id', user.value.id)
         .maybeSingle()
 
       if (fetchError) throw fetchError
 
       profile.value = data
+      avatarUrl.value = data?.avatar_path ? await getAvatarUrl(data.avatar_path) : null
       return true
     } catch (fetchError: unknown) {
       error.value = fetchError instanceof Error ? fetchError.message : 'Profile load failed'
@@ -124,9 +132,38 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const uploadProfileAvatar = async (file: File) => {
+    if (!user.value) {
+      error.value = 'You must be signed in to upload a profile picture'
+      return false
+    }
+
+    isUploadingAvatar.value = true
+    error.value = null
+
+    try {
+      const avatarPath = await uploadAvatar(file, profile.value?.avatar_path)
+      profile.value = {
+        full_name: profile.value?.full_name ?? null,
+        email: profile.value?.email ?? null,
+        phone_number: profile.value?.phone_number ?? null,
+        avatar_path: avatarPath,
+      }
+      avatarUrl.value = await getAvatarUrl(avatarPath)
+      return true
+    } catch (uploadError: unknown) {
+      error.value =
+        uploadError instanceof Error ? uploadError.message : 'Profile picture upload failed'
+      return false
+    } finally {
+      isUploadingAvatar.value = false
+    }
+  }
+
   const resetAuth = () => {
     user.value = null
     profile.value = null
+    avatarUrl.value = null
     isAuth.value = false
     error.value = null
   }
@@ -162,19 +199,23 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = data.session?.user ?? null
     isAuth.value = data.session !== null
     isInitialized = true
+    if (user.value) await fetchProfile()
   }
 
   return {
     user,
     profile,
+    avatarUrl,
     isAuth,
     isLoading,
+    isUploadingAvatar,
     error,
     initialize,
     signIn,
     signUp,
     updateProfile,
     fetchProfile,
+    uploadProfileAvatar,
     signOut,
   }
 })

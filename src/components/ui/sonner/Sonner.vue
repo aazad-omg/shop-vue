@@ -4,9 +4,9 @@ import {
   CircleCheck,
   InfoIcon,
   Loader2Icon,
-  OctagonXIcon,
   TriangleAlertIcon,
   XIcon,
+  CircleXIcon,
 } from '@lucide/vue'
 import { cn } from 'cn'
 import { Toaster as Sonner } from 'vue-sonner'
@@ -38,7 +38,7 @@ const props = defineProps<ToasterProps>()
       <TriangleAlertIcon class="size-4" />
     </template>
     <template #error-icon>
-      <OctagonXIcon class="size-4" />
+      <CircleXIcon class="size-6 fill-red-600 text-white" :stroke-width="2.75" />
     </template>
     <template #loading-icon>
       <div>

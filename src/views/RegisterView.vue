@@ -51,7 +51,7 @@ const onSubmit = async () => {
   const signedUp = await authStore.signUp(email.value, password.value, name.value)
 
   if (!signedUp) {
-    alert(error.value ?? 'Registration failed')
+    toast.error(error.value ?? 'Registration failed')
     return
   }
 
