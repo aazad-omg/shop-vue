@@ -237,9 +237,9 @@ const memberSince = computed(() => {
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p class="text-center text-sm">Maximum file size: 2 MB</p>
-
-                  <p class="text-center text-sm py-1">Supported formats: JPG, PNG, WebP</p>
+                  <p class="text-sm font-semibold text-white">Avatar requirements</p>
+                  <p class="mt-1 text-xs text-gray-300">Maximum size: 2 MB</p>
+                  <p class="text-xs text-gray-300">Formats: JPG, PNG, or WebP</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

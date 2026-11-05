@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
-import { ProductCard, ProductCardSkeleton } from '@/components'
+import { ProductCard, ProductCardSkeleton, Spinner } from '@/components'
 import type { Product } from '@/types'
 import { useCartStore, useProductStore } from '@/stores'
 import { storeToRefs } from 'pinia'
@@ -13,7 +13,7 @@ const cart = useCartStore()
 const route = useRoute()
 const router = useRouter()
 // use reactively even while destructuring
-const { products, isLoading, error } = storeToRefs(productStore)
+const { products, isLoading, error, hasMore } = storeToRefs(productStore)
 
 const categories = ref<string[]>([
   'All goods',
@@ -33,13 +33,46 @@ const {
   error: categoryError,
   fetchProducts: fetchCategoryProducts,
   cancelFetch: cancelCategoryFetch,
-} = useProducts(() => ({ limit: 20, category: selectedCategory.value }))
+} = useProducts({ limit: 20, category: selectedCategory.value })
 
 const routeCategory = () => (typeof route.query.category === 'string' ? route.query.category : '')
 
+const loadMoreTrigger = ref<HTMLElement | null>(null)
+
+// Detect when an HTML element
+// enters or leaves the visible area of the browser
+let observer: IntersectionObserver | null = null
+
+const loadMore = () => {
+  productStore.loadMoreProducts()
+}
 onMounted(() => {
   // Make the api call but dont wait for it to finish,
-  if (!routeCategory()) void productStore.fetchProducts()
+  if (!routeCategory()) productStore.fetchProducts()
+})
+
+onMounted(() => {
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0]?.isIntersecting) {
+        loadMore()
+      }
+    },
+    {
+      root: null,
+      rootMargin: '300px',
+      threshold: 0,
+    },
+  )
+
+  if (loadMoreTrigger.value) {
+    // tell the IntersectionObserver to watch the element
+    observer?.observe(loadMoreTrigger.value)
+  }
+})
+
+onUnmounted(() => {
+  observer?.disconnect()
 })
 
 const selectCategory = (category: string) => {
@@ -70,12 +103,15 @@ watch(
 const displayedProducts = computed(() =>
   selectedCategory.value === 'All goods' ? products.value : categoryProducts.value,
 )
+
 const displayedLoading = computed(() =>
   selectedCategory.value === 'All goods' ? isLoading.value : isCategoryLoading.value,
 )
+
 const displayedError = computed(() =>
   selectedCategory.value === 'All goods' ? error.value : categoryError.value,
 )
+
 const addCurrentProductToCart = (product: Product) => {
   cart.addToCart(product, 1)
   cart.openDrawer()
@@ -113,14 +149,14 @@ const addCurrentProductToCart = (product: Product) => {
 
     <main class="mx-auto w-full max-w-7xl px-4 pb-10">
       <!-- <ProductBanner /> -->
-
       <div
-        v-if="displayedLoading"
+        v-if="displayedLoading && displayedProducts.length === 0"
         class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         aria-label="Loading products"
       >
         <ProductCardSkeleton v-for="index in 8" :key="index" />
       </div>
+
       <p v-else-if="displayedError" class="mt-8 py-16 text-center text-red-700">
         Could not load products: {{ displayedError }}
       </p>
@@ -140,6 +176,13 @@ const addCurrentProductToCart = (product: Product) => {
         <p v-if="displayedProducts.length === 0" class="py-16 text-center text-stone-600">
           No products in this category yet.
         </p>
+      </div>
+
+      <!-- Infinite scroll trigger -->
+      <div ref="loadMoreTrigger" class="flex justify-center py-8">
+        <Spinner class="size-10" aria-hidden="true" v-if="isLoading" />
+
+        <p v-else-if="!hasMore" class="text-sm text-gray-500">You've reached the end.</p>
       </div>
     </main>
   </div>
