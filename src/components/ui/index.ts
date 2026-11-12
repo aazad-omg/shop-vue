@@ -6,6 +6,7 @@ export { default as ProductBanner } from './ProductBanner.vue'
 export { default as ProductCard } from './ProductCard.vue'
 export { default as ProductCardSkeleton } from './ProductCardSkeleton.vue'
 
+export * from './accordion'
 export * from './button'
 export * from './card'
 export * from './combobox'

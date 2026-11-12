@@ -18,6 +18,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuth = ref(false)
   const isLoading = ref(false)
   const isUploadingAvatar = ref(false)
+  const isChangingPassword = ref(false)
   const error = ref<string | null>(null)
   let isInitialized = false
 
@@ -63,6 +64,29 @@ export const useAuthStore = defineStore('auth', () => {
       return false
     } finally {
       isLoading.value = false
+    }
+  }
+
+  const changePassword = async (password: string) => {
+    if (!user.value) {
+      error.value = 'You must be signed in to change your password'
+      return false
+    }
+
+    isChangingPassword.value = true
+    error.value = null
+
+    try {
+      const { error } = await supabase.auth.updateUser({ password })
+
+      if (error) throw error
+      return true
+    } catch (changePasswordError: unknown) {
+      error.value =
+        changePasswordError instanceof Error ? changePasswordError.message : 'Password update failed'
+      return false
+    } finally {
+      isChangingPassword.value = false
     }
   }
 
@@ -209,10 +233,12 @@ export const useAuthStore = defineStore('auth', () => {
     isAuth,
     isLoading,
     isUploadingAvatar,
+    isChangingPassword,
     error,
     initialize,
     signIn,
     signUp,
+    changePassword,
     updateProfile,
     fetchProfile,
     uploadProfileAvatar,
