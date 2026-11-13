@@ -7,6 +7,7 @@ type ProductOptions = {
   searchTerm?: string
   category?: string
   limit?: number
+  excludeId?: number
   //   use categoryId later if the project scales
   // categoryId?: number
 }
@@ -15,28 +16,33 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
   const products = ref<Product[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+  const hasMore = ref(true)
   let activeController: AbortController | null = null
-  let requestId = 0
 
   const cancelFetch = () => {
-    requestId += 1
     activeController?.abort()
     activeController = null
     isLoading.value = false
     error.value = null
   }
 
-  const fetchProducts = async () => {
+  const fetchPage = async (append: boolean) => {
     activeController?.abort()
     const controller = new AbortController()
     activeController = controller
-    const currentRequestId = ++requestId
+    const refOptions = toValue(options)
+    const pageSize = refOptions.limit ?? 20
+    const from = append ? products.value.length : 0
+    const to = from + pageSize - 1
+
     isLoading.value = true
     error.value = null
+    if (!append) {
+      products.value = []
+      hasMore.value = true
+    }
 
     try {
-      const refOptions = toValue(options)
-
       let query = supabase.from('products').select('*')
       const searchTerm = refOptions.searchTerm?.trim()
 
@@ -46,23 +52,25 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
       if (refOptions.category) {
         query = query.contains('categories', [refOptions.category])
       }
-
-      if (refOptions.limit !== undefined) {
-        query = query.limit(refOptions.limit)
+      if (refOptions.excludeId !== undefined) {
+        query = query.neq('id', refOptions.excludeId)
       }
 
       const response = await query
         .order('name', { ascending: true })
+        .order('id', { ascending: true })
+        .range(from, to)
         .abortSignal(controller.signal)
 
       if (response.error) throw response.error
 
-      if (currentRequestId === requestId) {
-        // @ts-ignore: TypeScript is not able to infer the type of response.data correctly
-        products.value = response.data ?? []
+      if (activeController === controller) {
+        const page = response.data ?? []
+        products.value = append ? [...products.value, ...page] : page
+        hasMore.value = page.length === pageSize
       }
     } catch (err) {
-      if (currentRequestId === requestId && !controller.signal.aborted) {
+      if (activeController === controller && !controller.signal.aborted) {
         console.error('Error fetching products:', err)
         if (err instanceof Error) {
           error.value = err.message
@@ -78,18 +86,24 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
         }
       }
     } finally {
-      if (currentRequestId === requestId) {
+      if (activeController === controller) {
         activeController = null
         isLoading.value = false
       }
     }
   }
 
+  const fetchProducts = () => fetchPage(false)
+
+  const loadMoreProducts = () => {
+    if (isLoading.value || !hasMore.value) return Promise.resolve()
+    return fetchPage(true)
+  }
+
   const fetchProductById = async (id: string): Promise<Product | null> => {
     activeController?.abort()
     const controller = new AbortController()
     activeController = controller
-    const currentRequestId = ++requestId
     isLoading.value = true
     error.value = null
 
@@ -103,9 +117,9 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
 
       if (response.error) throw response.error
 
-      return currentRequestId === requestId ? response.data : null
+      return activeController === controller ? response.data : null
     } catch (err) {
-      if (currentRequestId === requestId && !controller.signal.aborted) {
+      if (activeController === controller && !controller.signal.aborted) {
         console.error('Error fetching product:', err)
         if (err instanceof Error) {
           error.value = err.message
@@ -123,7 +137,7 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
 
       return null
     } finally {
-      if (currentRequestId === requestId) {
+      if (activeController === controller) {
         activeController = null
         isLoading.value = false
       }
@@ -139,7 +153,9 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
     products,
     isLoading,
     error,
+    hasMore,
     fetchProducts,
+    loadMoreProducts,
     fetchProductById,
     cancelFetch,
   }

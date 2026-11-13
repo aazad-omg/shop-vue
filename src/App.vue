@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import 'vue-sonner/style.css'
-import { Toaster } from '@/components'
+import { storeToRefs } from 'pinia'
+import { FullPageSpinner, Toaster } from '@/components'
+import { useUiStore } from '@/stores'
+
+const uiStore = useUiStore()
+const { isFullPageLoading } = storeToRefs(uiStore)
 </script>
 
 <template>
   <RouterView />
+  <FullPageSpinner :loading="isFullPageLoading" />
   <Toaster
     position="top-right"
     expand

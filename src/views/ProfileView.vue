@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import useVuelidate from '@vuelidate/core'
 import { email as emailValidator, minLength, required, sameAs } from '@vuelidate/validators'
 import { toast } from 'vue-sonner'
@@ -10,9 +10,9 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
+  Badge,
   Button,
   Card,
-  FullPageSpinner,
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
@@ -23,11 +23,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components'
-import { useAuthStore } from '@/stores'
+import { useAuthStore, useUiStore } from '@/stores'
 
 const authStore = useAuthStore()
+const uiStore = useUiStore()
 const { user, profile, avatarUrl, isLoading, isUploadingAvatar, isChangingPassword, error } =
   storeToRefs(authStore)
+
+watch(
+  isLoading,
+  (loading) => (uiStore.isFullPageLoading = loading),
+  { immediate: true },
+)
+onUnmounted(() => (uiStore.isFullPageLoading = false))
 
 const initialName = user.value?.user_metadata?.full_name ?? user.value?.user_metadata?.name ?? ''
 const name = ref(typeof initialName === 'string' ? initialName : '')
@@ -222,8 +230,6 @@ const memberSince = computed(() => {
 </script>
 
 <template>
-  <FullPageSpinner :loading="isLoading" />
-
   <main class="min-h-screen bg-amber-50 px-4 py-8 sm:px-8 sm:py-12 flex justify-center">
     <Card class="w-full max-w-4xl border-stone-200/80 px-5 shadow-sm sm:px-8">
       <header class="border-b border-stone-200 py-0">
@@ -310,9 +316,15 @@ const memberSince = computed(() => {
             </div>
           </div>
           <div class="min-w-0">
-            <h2 class="wrap-break-word text-xl font-bold text-stone-900 sm:text-2xl">
-              {{ displayName }}
-            </h2>
+            <div class="flex gap-2">
+              <h2 class="wrap-break-word text-xl font-bold text-stone-900 sm:text-2xl">
+                {{ displayName }}
+              </h2>
+              <Badge variant="secondary" class="bg-brand-900 text-white dark:bg-blue-600">
+                Admin
+              </Badge>
+            </div>
+
             <p class="mt-1 break-all text-sm text-stone-600">
               {{ savedProfile.email || 'No email address available' }}
             </p>

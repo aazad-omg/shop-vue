@@ -11,22 +11,27 @@ type Profile = {
   avatar_path: string | null
 }
 
+type Role = 'admin'
+
 // keep session storage so that the app doesn't forgot that
 // the user is resetting their password if the page is refreshed
-const passwordRecoveryStorageKey = 'shopvue-password-recovery'
+const Password_Recovery_Storage_Key = 'shopvue-password-recovery'
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(null)
-  const profile = ref<Profile | null>(null)
   const avatarUrl = ref<string | null>(null)
-  const isAuth = ref(false)
-  const isLoading = ref(false)
-  const isUploadingAvatar = ref(false)
-  const isChangingPassword = ref(false)
-  const isRequestingPasswordReset = ref(false)
-  const isPasswordRecovery = ref(false)
   const error = ref<string | null>(null)
+  const isAuth = ref(false)
+  const isChangingPassword = ref(false)
+  const isLoading = ref(false)
+  const isPasswordRecovery = ref(false)
+  const isRequestingPasswordReset = ref(false)
+  const isUploadingAvatar = ref(false)
+  const profile = ref<Profile | null>(null)
+  const role = ref<Role | null>(null)
+  const user = ref<User | null>(null)
   let isInitialized = false
+
+  const canManageProducts = () => role.value === 'admin'
 
   const requestPasswordReset = async (email: string, redirectTo: string) => {
     isRequestingPasswordReset.value = true
@@ -105,7 +110,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (error) throw error
       isPasswordRecovery.value = false
-      sessionStorage.removeItem(passwordRecoveryStorageKey)
+      sessionStorage.removeItem(Password_Recovery_Storage_Key)
       return true
     } catch (changePasswordError: unknown) {
       error.value =
@@ -245,10 +250,10 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (_event === 'PASSWORD_RECOVERY') {
         isPasswordRecovery.value = true
-        sessionStorage.setItem(passwordRecoveryStorageKey, 'true')
+        sessionStorage.setItem(Password_Recovery_Storage_Key, 'true')
       } else if (_event === 'SIGNED_OUT') {
         isPasswordRecovery.value = false
-        sessionStorage.removeItem(passwordRecoveryStorageKey)
+        sessionStorage.removeItem(Password_Recovery_Storage_Key)
       }
     })
 
@@ -259,8 +264,8 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = data.session?.user ?? null
     isAuth.value = data.session !== null
     isPasswordRecovery.value =
-      data.session !== null && sessionStorage.getItem(passwordRecoveryStorageKey) === 'true'
-    if (!data.session) sessionStorage.removeItem(passwordRecoveryStorageKey)
+      data.session !== null && sessionStorage.getItem(Password_Recovery_Storage_Key) === 'true'
+    if (!data.session) sessionStorage.removeItem(Password_Recovery_Storage_Key)
     isInitialized = true
     if (user.value) await fetchProfile()
   }

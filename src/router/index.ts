@@ -20,7 +20,7 @@ const router = createRouter({
           meta: { requiresAuth: true },
         },
         {
-          path: 'product/:slug/:id',
+          path: 'product/:slug',
           name: 'product-detail',
           component: () => import('@/views/ProductDetailView.vue'),
         },
@@ -30,6 +30,18 @@ const router = createRouter({
           name: 'purchase',
           component: () => import('@/views/PurchaseView.vue'),
           meta: { requiresAuth: true },
+        },
+      ],
+    },
+    {
+      path: '/admin',
+      component: () => import('@/layouts/AdminLayout.vue'),
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          name: 'admin-dashboard',
+          component: () => import('@/views/AdminDashboardView.vue'),
         },
       ],
     },
@@ -59,10 +71,6 @@ const router = createRouter({
       component: () => import('@/views/NotFoundView.vue'),
     },
   ],
-
-  // scrollBehavior() {
-  //   return { top: 0 }
-  // },
 })
 
 // redirect to login page for protected routes
