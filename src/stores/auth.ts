@@ -11,6 +11,10 @@ type Profile = {
   avatar_path: string | null
 }
 
+// keep session storage so that the app doesn't forgot that
+// the user is resetting their password if the page is refreshed
+const passwordRecoveryStorageKey = 'shopvue-password-recovery'
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const profile = ref<Profile | null>(null)
@@ -19,8 +23,28 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoading = ref(false)
   const isUploadingAvatar = ref(false)
   const isChangingPassword = ref(false)
+  const isRequestingPasswordReset = ref(false)
+  const isPasswordRecovery = ref(false)
   const error = ref<string | null>(null)
   let isInitialized = false
+
+  const requestPasswordReset = async (email: string, redirectTo: string) => {
+    isRequestingPasswordReset.value = true
+    error.value = null
+
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
+
+      if (resetError) throw resetError
+      return true
+    } catch (resetError: unknown) {
+      error.value =
+        resetError instanceof Error ? resetError.message : 'Password recovery request failed'
+      return false
+    } finally {
+      isRequestingPasswordReset.value = false
+    }
+  }
 
   const signIn = async (email: string, password: string) => {
     isLoading.value = true
@@ -80,10 +104,14 @@ export const useAuthStore = defineStore('auth', () => {
       const { error } = await supabase.auth.updateUser({ password })
 
       if (error) throw error
+      isPasswordRecovery.value = false
+      sessionStorage.removeItem(passwordRecoveryStorageKey)
       return true
     } catch (changePasswordError: unknown) {
       error.value =
-        changePasswordError instanceof Error ? changePasswordError.message : 'Password update failed'
+        changePasswordError instanceof Error
+          ? changePasswordError.message
+          : 'Password update failed'
       return false
     } finally {
       isChangingPassword.value = false
@@ -214,6 +242,14 @@ export const useAuthStore = defineStore('auth', () => {
     supabase.auth.onAuthStateChange((_event, session) => {
       user.value = session?.user ?? null
       isAuth.value = session !== null
+
+      if (_event === 'PASSWORD_RECOVERY') {
+        isPasswordRecovery.value = true
+        sessionStorage.setItem(passwordRecoveryStorageKey, 'true')
+      } else if (_event === 'SIGNED_OUT') {
+        isPasswordRecovery.value = false
+        sessionStorage.removeItem(passwordRecoveryStorageKey)
+      }
     })
 
     const { data, error: sessionError } = await supabase.auth.getSession()
@@ -222,6 +258,9 @@ export const useAuthStore = defineStore('auth', () => {
 
     user.value = data.session?.user ?? null
     isAuth.value = data.session !== null
+    isPasswordRecovery.value =
+      data.session !== null && sessionStorage.getItem(passwordRecoveryStorageKey) === 'true'
+    if (!data.session) sessionStorage.removeItem(passwordRecoveryStorageKey)
     isInitialized = true
     if (user.value) await fetchProfile()
   }
@@ -234,10 +273,13 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading,
     isUploadingAvatar,
     isChangingPassword,
+    isRequestingPasswordReset,
+    isPasswordRecovery,
     error,
     initialize,
     signIn,
     signUp,
+    requestPasswordReset,
     changePassword,
     updateProfile,
     fetchProfile,
