@@ -136,15 +136,26 @@ const onSubmit = async () => {
         </p>
       </div>
 
-      <div class="mb-4 flex items-center gap-2">
-        <input
-          id="remember-me"
-          v-model="rememberMe"
-          name="remember-me"
-          type="checkbox"
-          class="size-5 accent-brand-700"
-        />
-        <Label for="remember-me" class="text-brand-900">Remember me</Label>
+      <div class="mb-4 flex items-center justify-between">
+        <div class="flex gap-2">
+          <input
+            id="remember-me"
+            v-model="rememberMe"
+            name="remember-me"
+            type="checkbox"
+            class="size-5 accent-brand-700"
+          />
+          <Label for="remember-me" class="text-brand-900">Remember me</Label>
+        </div>
+
+        <div class="">
+          <RouterLink
+            to="/forgot-password"
+            class="text-sm font-semibold text-brand-500 hover:text-brand hover:underline"
+          >
+            Forgot password?
+          </RouterLink>
+        </div>
       </div>
 
       <div class="mt-2 flex justify-center pt-2">
