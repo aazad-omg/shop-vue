@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import useVuelidate from '@vuelidate/core'
-
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { email as emailValidator, minLength, sameAs, required } from '@vuelidate/validators'
 import { Button } from '@/components'
 import { InputGroup, InputGroupAddon, InputGroupInput, Label, Spinner } from '@/components'
-import { Eye, EyeOff } from '@lucide/vue'
+import { Eye, EyeOff, NepaliRupee } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { useAuthStore } from '@/stores'
 import { storeToRefs } from 'pinia'
@@ -64,12 +63,17 @@ const onSubmit = async () => {
   <div
     class="mx-auto my-10 flex w-full max-w-lg flex-col gap-5 rounded-2xl md:border border-amber-900/15 bg-white p-10 md:shadow-2xl shadow-amber-950/25"
   >
-    <div class="text-center text-3xl font-bold tracking-wide text-brand-900">SHOPVUE</div>
+    <div class="flex justify-center items-center gap-2 pb-7">
+      <p class="text-center text-3xl font-bold tracking-wide text-brand-900">ShopVue</p>
+      <NepaliRupee :size="35" color="#dd0808" :stroke-width="2.5" />
+    </div>
     <div><p class="text-center text-2xl font-semibold text-brand">Create your account</p></div>
 
     <form novalidate @submit.prevent="onSubmit">
       <div class="">
-        <Label for="name" class="py-2 text-lg text-brand-900">Name</Label>
+        <Label for="name" class="py-2 text-lg text-brand-900">
+          Name <span class="text-destructive" aria-hidden="true">*</span>
+        </Label>
 
         <InputGroup
           class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
@@ -90,7 +94,9 @@ const onSubmit = async () => {
       </div>
 
       <div class="">
-        <Label for="email" class="py-2 text-lg text-brand-900">Email</Label>
+        <Label for="email" class="py-2 text-lg text-brand-900">
+          Email <span class="text-destructive" aria-hidden="true">*</span>
+        </Label>
 
         <InputGroup
           class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
@@ -111,7 +117,9 @@ const onSubmit = async () => {
       </div>
 
       <div class="">
-        <Label for="password" class="py-2 text-lg text-brand-900">Password</Label>
+        <Label for="password" class="py-2 text-lg text-brand-900">
+          Password <span class="text-destructive" aria-hidden="true">*</span>
+        </Label>
 
         <InputGroup
           class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
@@ -143,7 +151,9 @@ const onSubmit = async () => {
       </div>
 
       <div class="">
-        <Label for="confirmPassword" class="py-2 text-lg text-brand-900">Confirm Password</Label>
+        <Label for="confirmPassword" class="py-2 text-lg text-brand-900">
+          Confirm Password <span class="text-destructive" aria-hidden="true">*</span>
+        </Label>
 
         <InputGroup
           class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"

@@ -2,14 +2,19 @@
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import useVuelidate from '@vuelidate/core'
-import { email as emailValidator, minLength, required } from '@vuelidate/validators'
+import { email as emailValidator, minLength, required, sameAs } from '@vuelidate/validators'
 import { toast } from 'vue-sonner'
-import { Pencil } from '@lucide/vue'
+import { ChevronDown, Eye, EyeOff, Pencil } from '@lucide/vue'
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
   Button,
   Card,
   FullPageSpinner,
   InputGroup,
+  InputGroupAddon,
   InputGroupInput,
   Label,
   Spinner,
@@ -21,13 +26,19 @@ import {
 import { useAuthStore } from '@/stores'
 
 const authStore = useAuthStore()
-const { user, profile, avatarUrl, isLoading, isUploadingAvatar, error } = storeToRefs(authStore)
+const { user, profile, avatarUrl, isLoading, isUploadingAvatar, isChangingPassword, error } =
+  storeToRefs(authStore)
 
 const initialName = user.value?.user_metadata?.full_name ?? user.value?.user_metadata?.name ?? ''
 const name = ref(typeof initialName === 'string' ? initialName : '')
 const email = ref(user.value?.email ?? '')
 const phone = ref(user.value?.phone ?? '')
+const newPassword = ref('')
+const confirmPassword = ref('')
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
 const isEditing = ref(false)
+const profileAccordionValue = ref<string | undefined>('item-1')
 const savedProfile = ref({ name: name.value, email: email.value, phone: phone.value })
 const avatarInput = ref<HTMLInputElement | null>(null)
 const selectedAvatar = ref<File | null>(null)
@@ -109,6 +120,18 @@ const rules = computed(() => ({
 }))
 const v$ = useVuelidate(rules, { name, email })
 
+const passwordRules = computed(() => ({
+  newPassword: {
+    required,
+    minLength: minLength(6),
+  },
+  confirmPassword: {
+    required,
+    sameAsPassword: sameAs(newPassword),
+  },
+}))
+const passwordV$ = useVuelidate(passwordRules, { newPassword, confirmPassword }, { $scope: false })
+
 const cancelEditing = () => {
   name.value = savedProfile.value.name
   email.value = savedProfile.value.email
@@ -124,6 +147,8 @@ const toggleEditing = () => {
   }
 
   v$.value.$reset()
+  // trigger the first accordion to open
+  profileAccordionValue.value = 'item-1'
   isEditing.value = true
 }
 
@@ -151,6 +176,25 @@ const onSubmit = async () => {
   }
   isEditing.value = false
   toast.success('Profile updated successfully.')
+}
+
+const onChangePassword = async () => {
+  const isValid = await passwordV$.value.$validate()
+  if (!isValid) return
+
+  const changed = await authStore.changePassword(newPassword.value)
+
+  if (!changed) {
+    toast.error(error.value ?? 'Password update failed')
+    return
+  }
+
+  newPassword.value = ''
+  confirmPassword.value = ''
+  showNewPassword.value = false
+  showConfirmPassword.value = false
+  passwordV$.value.$reset()
+  toast.success('Password changed successfully.')
 }
 
 const displayName = computed(() => savedProfile.value.name.trim() || 'ShopVue customer')
@@ -283,105 +327,244 @@ const memberSince = computed(() => {
           </Button>
         </div>
 
-        <form
-          id="profile-edit-form"
-          class="border-b border-stone-200 py-6"
-          novalidate
-          @submit.prevent="onSubmit"
-        >
-          <h2 class="mb-4 text-xl font-bold text-stone-900">Profile details</h2>
-          <div class="grid gap-x-6 sm:grid-cols-2">
-            <div class="mb-4">
-              <Label for="name" class="py-2 text-lg text-brand-900">Name</Label>
-              <InputGroup
-                class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
-              >
-                <InputGroupInput
-                  id="name"
-                  v-model.trim="v$.name.$model"
-                  name="name"
-                  type="text"
-                  autocomplete="name"
-                  placeholder="Enter your name"
-                  data-slot="input-group-control"
-                  class="text-stone-900 disabled:pointer-events-auto disabled:text-stone-700 disabled:opacity-100 disabled:hover:bg-red-100"
-                  :class="{ 'hover:cursor-not-allowed': !isEditing || isLoading }"
-                  :disabled="!isEditing || isLoading"
-                  :aria-invalid="isEditing && v$.name.$error"
-                />
-              </InputGroup>
-              <p class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
-                {{ isEditing && v$.name.$error ? v$.name.$errors[0]?.$message : '' }}
-              </p>
-            </div>
-
-            <div class="mb-4">
-              <Label for="email" class="py-2 text-lg text-brand-900">Email</Label>
-              <InputGroup
-                class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
-              >
-                <InputGroupInput
-                  id="email"
-                  v-model.trim="v$.email.$model"
-                  name="email"
-                  type="email"
-                  autocomplete="email"
-                  placeholder="Enter your email"
-                  data-slot="input-group-control"
-                  class="text-stone-900 disabled:pointer-events-auto disabled:text-stone-700 disabled:opacity-100 disabled:hover:bg-red-100"
-                  :class="{ 'hover:cursor-not-allowed': !isEditing || isLoading }"
-                  :disabled="!isEditing || isLoading"
-                  :aria-invalid="isEditing && v$.email.$error"
-                />
-              </InputGroup>
-              <p class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
-                {{ isEditing && v$.email.$error ? v$.email.$errors[0]?.$message : '' }}
-              </p>
-            </div>
-
-            <div class="mb-4">
-              <Label for="phone" class="py-2 text-lg text-brand-900">Phone number</Label>
-              <InputGroup
-                class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
-              >
-                <InputGroupInput
-                  id="phone"
-                  v-model.trim="phone"
-                  name="phone"
-                  type="tel"
-                  autocomplete="tel"
-                  placeholder="Enter your phone number"
-                  data-slot="input-group-control"
-                  class="text-stone-900 disabled:pointer-events-auto disabled:text-stone-700 disabled:opacity-100 disabled:hover:bg-red-100"
-                  :class="{ 'hover:cursor-not-allowed': !isEditing || isLoading }"
-                  :disabled="!isEditing || isLoading"
-                />
-              </InputGroup>
-              <p class="mt-1.5 min-h-5 text-sm text-stone-500">Optional</p>
-            </div>
-          </div>
-
-          <div v-if="isEditing" class="mt-2 flex gap-3">
-            <Button
-              type="submit"
-              :disabled="isLoading"
-              class="bg-brand-900 py-5 transition-transform hover:cursor-pointer active:scale-[0.98] sm:px-8"
+        <Accordion v-model="profileAccordionValue" type="single" collapsible>
+          <AccordionItem value="item-1">
+            <AccordionTrigger
+              class="px-4 hover:cursor-pointer hover:bg-brand-100 hover:no-underline"
             >
-              <Spinner v-if="isLoading" class="size-4" />
-              {{ isLoading ? 'Saving…' : 'Save changes' }}
-            </Button>
-            <Button
-              type="button"
-              :disabled="isLoading"
-              class="border border-stone-300 bg-white py-5 text-stone-800 hover:bg-stone-100 hover:cursor-pointer sm:px-8"
-              @click="toggleEditing"
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
+              <span>
+                <h2 class="text-xl font-bold text-stone-900">Profile details</h2>
+              </span>
+              <template #icon>
+                <ChevronDown :size="25" color="#2a3a5e" :stroke-width="3" />
+              </template>
+            </AccordionTrigger>
+            <AccordionContent class="px-4">
+              <form
+                id="profile-edit-form"
+                class="border-b border-stone-200 py-6"
+                novalidate
+                @submit.prevent="onSubmit"
+              >
+                <div class="grid gap-x-6 sm:grid-cols-2">
+                  <div class="mb-4">
+                    <Label for="name" class="py-2 text-lg text-brand-900">
+                      Name <span class="text-destructive" aria-hidden="true">*</span>
+                    </Label>
+                    <InputGroup
+                      class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
+                    >
+                      <InputGroupInput
+                        id="name"
+                        v-model.trim="v$.name.$model"
+                        name="name"
+                        type="text"
+                        autocomplete="name"
+                        placeholder="Enter your name"
+                        data-slot="input-group-control"
+                        class="text-stone-900 disabled:pointer-events-auto disabled:text-stone-700 disabled:opacity-100 disabled:hover:bg-red-100"
+                        :class="{ 'hover:cursor-not-allowed': !isEditing || isLoading }"
+                        :disabled="!isEditing || isLoading"
+                        :aria-invalid="isEditing && v$.name.$error"
+                      />
+                    </InputGroup>
+                    <p class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
+                      {{ isEditing && v$.name.$error ? v$.name.$errors[0]?.$message : '' }}
+                    </p>
+                  </div>
 
-        <dl class="grid gap-x-8 sm:grid-cols-2">
+                  <div class="mb-4">
+                    <Label for="email" class="py-2 text-lg text-brand-900">
+                      Email <span class="text-destructive" aria-hidden="true">*</span>
+                    </Label>
+                    <InputGroup
+                      class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
+                    >
+                      <InputGroupInput
+                        id="email"
+                        v-model.trim="v$.email.$model"
+                        name="email"
+                        type="email"
+                        autocomplete="email"
+                        placeholder="Enter your email"
+                        data-slot="input-group-control"
+                        class="text-stone-900 disabled:pointer-events-auto disabled:text-stone-700 disabled:opacity-100 disabled:hover:bg-red-100"
+                        :class="{ 'hover:cursor-not-allowed': !isEditing || isLoading }"
+                        :disabled="!isEditing || isLoading"
+                        :aria-invalid="isEditing && v$.email.$error"
+                      />
+                    </InputGroup>
+                    <p class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
+                      {{ isEditing && v$.email.$error ? v$.email.$errors[0]?.$message : '' }}
+                    </p>
+                  </div>
+
+                  <div class="mb-4">
+                    <Label for="phone" class="py-2 text-lg text-brand-900">Phone number</Label>
+                    <InputGroup
+                      class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
+                    >
+                      <InputGroupInput
+                        id="phone"
+                        v-model.trim="phone"
+                        name="phone"
+                        type="tel"
+                        autocomplete="tel"
+                        placeholder="Enter your phone number"
+                        data-slot="input-group-control"
+                        class="text-stone-900 disabled:pointer-events-auto disabled:text-stone-700 disabled:opacity-100 disabled:hover:bg-red-100"
+                        :class="{ 'hover:cursor-not-allowed': !isEditing || isLoading }"
+                        :disabled="!isEditing || isLoading"
+                      />
+                    </InputGroup>
+                  </div>
+                </div>
+
+                <div v-if="isEditing" class="mt-2 flex gap-3">
+                  <Button
+                    type="submit"
+                    :disabled="isLoading"
+                    class="bg-brand-900 py-5 transition-transform hover:cursor-pointer active:scale-[0.98] sm:px-8"
+                  >
+                    <Spinner v-if="isLoading" class="size-4" />
+                    {{ isLoading ? 'Saving…' : 'Save changes' }}
+                  </Button>
+                  <Button
+                    type="button"
+                    :disabled="isLoading"
+                    class="border border-stone-300 bg-white py-5 text-stone-800 hover:bg-stone-100 hover:cursor-pointer sm:px-8"
+                    @click="toggleEditing"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+
+        <Accordion type="single" collapsible default-value="item-2">
+          <AccordionItem value="item-2">
+            <AccordionTrigger
+              class="px-4 hover:cursor-pointer hover:bg-brand-100 hover:no-underline"
+            >
+              <span>
+                <h2 class="text-xl font-bold text-stone-900">Account security</h2>
+              </span>
+              <template #icon>
+                <ChevronDown :size="25" color="#2a3a5e" :stroke-width="3" />
+              </template>
+            </AccordionTrigger>
+
+            <AccordionContent class="px-4">
+              <p class="mb-4 text-sm text-stone-600">Choose a new password for your account.</p>
+              <form
+                class="border-b border-stone-200 py-6"
+                novalidate
+                @submit.prevent="onChangePassword"
+              >
+                <div class="grid gap-x-6 sm:grid-cols-2">
+                  <div class="mb-4">
+                    <Label for="new-password" class="py-2 text-lg text-brand-900"
+                      >New password
+                      <span class="text-destructive" aria-hidden="true">*</span></Label
+                    >
+                    <InputGroup
+                      class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
+                    >
+                      <InputGroupInput
+                        id="new-password"
+                        v-model="passwordV$.newPassword.$model"
+                        name="new-password"
+                        :type="showNewPassword ? 'text' : 'password'"
+                        autocomplete="new-password"
+                        placeholder="Enter a new password"
+                        data-slot="input-group-control"
+                        :disabled="isChangingPassword"
+                        :aria-invalid="passwordV$.newPassword.$error"
+                      />
+                      <InputGroupAddon align="inline-end">
+                        <button
+                          type="button"
+                          :aria-label="showNewPassword ? 'Hide new password' : 'Show new password'"
+                          :aria-pressed="showNewPassword"
+                          :disabled="isChangingPassword"
+                          class="rounded-sm hover:cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 disabled:cursor-not-allowed"
+                          @click="showNewPassword = !showNewPassword"
+                        >
+                          <Eye v-if="!showNewPassword" aria-hidden="true" />
+                          <EyeOff v-else aria-hidden="true" />
+                        </button>
+                      </InputGroupAddon>
+                    </InputGroup>
+                    <p class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
+                      {{
+                        passwordV$.newPassword.$error
+                          ? passwordV$.newPassword.$errors[0]?.$message
+                          : ''
+                      }}
+                    </p>
+                  </div>
+
+                  <div class="mb-4">
+                    <Label for="confirm-password" class="py-2 text-lg text-brand-900">
+                      Confirm new password
+                      <span class="text-destructive" aria-hidden="true">*</span>
+                    </Label>
+                    <InputGroup
+                      class="has-[[data-slot=input-group-control]:focus-visible]:border-amber-500 has-[[data-slot=input-group-control]:focus-visible]:ring-amber-500/30"
+                    >
+                      <InputGroupInput
+                        id="confirm-password"
+                        v-model="passwordV$.confirmPassword.$model"
+                        name="confirm-password"
+                        :type="showConfirmPassword ? 'text' : 'password'"
+                        autocomplete="new-password"
+                        placeholder="Re-enter your new password"
+                        data-slot="input-group-control"
+                        :disabled="isChangingPassword"
+                        :aria-invalid="passwordV$.confirmPassword.$error"
+                      />
+                      <InputGroupAddon align="inline-end">
+                        <button
+                          type="button"
+                          :aria-label="
+                            showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'
+                          "
+                          :aria-pressed="showConfirmPassword"
+                          :disabled="isChangingPassword"
+                          class="rounded-sm hover:cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 disabled:cursor-not-allowed"
+                          @click="showConfirmPassword = !showConfirmPassword"
+                        >
+                          <Eye v-if="!showConfirmPassword" aria-hidden="true" />
+                          <EyeOff v-else aria-hidden="true" />
+                        </button>
+                      </InputGroupAddon>
+                    </InputGroup>
+                    <p class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
+                      {{
+                        passwordV$.confirmPassword.$error
+                          ? passwordV$.confirmPassword.$errors[0]?.$message
+                          : ''
+                      }}
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  :disabled="isChangingPassword"
+                  class="bg-brand-900 py-5 transition-transform hover:cursor-pointer active:scale-[0.98] sm:px-8"
+                >
+                  <Spinner v-if="isChangingPassword" class="size-4" />
+                  {{ isChangingPassword ? 'Changing password…' : 'Change password' }}
+                </Button>
+              </form>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+
+        <dl class="grid px-4 gap-x-8 sm:grid-cols-2">
           <div class="border-b border-stone-200 py-4">
             <dt class="text-sm font-medium text-stone-500">Member since</dt>
             <dd class="mt-1 font-semibold text-stone-900">{{ memberSince }}</dd>
