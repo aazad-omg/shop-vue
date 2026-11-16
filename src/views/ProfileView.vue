@@ -30,13 +30,6 @@ const uiStore = useUiStore()
 const { user, profile, avatarUrl, isLoading, isUploadingAvatar, isChangingPassword, error } =
   storeToRefs(authStore)
 
-watch(
-  isLoading,
-  (loading) => (uiStore.isFullPageLoading = loading),
-  { immediate: true },
-)
-onUnmounted(() => (uiStore.isFullPageLoading = false))
-
 const initialName = user.value?.user_metadata?.full_name ?? user.value?.user_metadata?.name ?? ''
 const name = ref(typeof initialName === 'string' ? initialName : '')
 const email = ref(user.value?.email ?? '')
@@ -55,6 +48,13 @@ const avatarImageFailed = ref(false)
 const visibleAvatarUrl = computed(() =>
   avatarImageFailed.value ? null : (avatarPreviewUrl.value ?? avatarUrl.value),
 )
+
+watch(
+  isLoading,
+  (loading) => (uiStore.isFullPageLoading = loading),
+  { immediate: true },
+)
+onUnmounted(() => (uiStore.isFullPageLoading = false))
 
 const onAvatarSelected = (event: Event) => {
   const input = event.currentTarget as HTMLInputElement

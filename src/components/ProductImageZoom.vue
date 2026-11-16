@@ -2,13 +2,12 @@
 import { useMediaQuery } from '@vueuse/core'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 
-const fallbackImage = '/product-placeholder.svg'
-
 const props = defineProps<{
   src: string
   alt: string
 }>()
 
+const fallbackImage = '/product-placeholder.svg'
 const imageSrc = ref(props.src || fallbackImage)
 const isFallbackImage = ref(!props.src || props.src === fallbackImage)
 

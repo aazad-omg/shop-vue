@@ -6,9 +6,6 @@ import { NepaliRupee } from '@lucide/vue'
 import { useImageFallback } from '@/composables'
 import { useMediaQuery } from '@vueuse/core'
 
-const { fallbackImage, handleImageError } = useImageFallback()
-const isAboveMd = useMediaQuery('(min-width: 48rem)')
-
 type Props = {
   product: Product
   addToCart: () => void
@@ -26,6 +23,9 @@ const props = withDefaults(defineProps<Props>(), {
     categories: [],
   }),
 })
+
+const { fallbackImage, handleImageError } = useImageFallback()
+const isAboveMd = useMediaQuery('(min-width: 48rem)')
 </script>
 
 <template>
