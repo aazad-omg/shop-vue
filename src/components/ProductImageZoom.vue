@@ -13,8 +13,7 @@ const imageSrc = ref(props.src || fallbackImage)
 const isFallbackImage = ref(!props.src || props.src === fallbackImage)
 
 // Disable image zoom for smaller screen sizes
-// 64rem = 1024px
-const canZoom = useMediaQuery('(min-width: 64rem)')
+const canZoom = useMediaQuery('(min-width: 48rem)')
 
 watch(
   () => props.src,
@@ -138,7 +137,7 @@ onUnmounted(() => {
   <div class="relative w-full">
     <div
       :class="{ 'cursor-zoom-in': canZoom && !isFallbackImage }"
-      class="w-full cursor-default"
+      class="relative h-full w-full cursor-default"
       @mouseenter="showZoom"
       @mouseleave="isZooming = false"
       @mousemove="moveLens"
@@ -159,12 +158,12 @@ onUnmounted(() => {
       <div
         v-show="isZooming"
         ref="lensRef"
-        class="pointer-events-none absolute h-25 w-25 border border-[#888] bg-red-500/25"
+        class="pointer-events-none absolute h-16 w-16 border border-[#888] bg-red-500/25 lg:h-20 lg:w-20"
       />
       <div
         v-show="isZooming"
         ref="resultRef"
-        class="absolute top-0 left-full z-50 ml-4 h-140 w-160 shrink-0 bg-no-repeat"
+        class="absolute top-0 left-full z-50 ml-4 aspect-square w-96 shrink-0 bg-no-repeat lg:w-[32rem] xl:w-[36rem]"
       />
     </div>
   </div>

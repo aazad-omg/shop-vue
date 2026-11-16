@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import useVuelidate from '@vuelidate/core'
 import { email as emailValidator, required } from '@vuelidate/validators'
-import { Card, FullPageSpinner } from '@/components'
+import { Card } from '@/components'
 import { useImageFallback } from '@/composables'
-import { useCartStore } from '@/stores'
+import { useCartStore, useUiStore } from '@/stores'
 import { Progress } from '@/components'
 import { ArrowLeft, NepaliRupee, ShoppingCart, Trash2 } from '@lucide/vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
@@ -11,9 +11,9 @@ import { RouterLink } from 'vue-router'
 import { toast } from 'vue-sonner'
 
 const cart = useCartStore()
+const uiStore = useUiStore()
 
 const { fallbackImage, handleImageError } = useImageFallback()
-const isLoading = ref(true)
 const orderPlaced = ref(false)
 const trackingStep = ref(0)
 const checkoutNotice = ref('')
@@ -24,8 +24,9 @@ const trackingSteps = [{ title: 'Checkout' }, { title: 'Processing' }, { title: 
 let loadingTimeout: ReturnType<typeof setTimeout> | undefined
 
 onMounted(() => {
+  uiStore.isFullPageLoading = true
   loadingTimeout = setTimeout(() => {
-    isLoading.value = false
+    uiStore.isFullPageLoading = false
   }, 2000)
 })
 
@@ -33,7 +34,10 @@ const cleanupTimers = () => {
   if (loadingTimeout) clearTimeout(loadingTimeout)
 }
 
-onUnmounted(cleanupTimers)
+onUnmounted(() => {
+  cleanupTimers()
+  uiStore.isFullPageLoading = false
+})
 
 const rules = computed(() => ({
   fullName: { required },
@@ -49,9 +53,9 @@ const submitOrder = async () => {
   if (!isValid) return
 
   cleanupTimers()
-  isLoading.value = true
+  uiStore.isFullPageLoading = true
   loadingTimeout = setTimeout(() => {
-    isLoading.value = false
+    uiStore.isFullPageLoading = false
     cart.clearCart()
     orderPlaced.value = true
     trackingStep.value = 1
@@ -61,8 +65,6 @@ const submitOrder = async () => {
 </script>
 
 <template>
-  <FullPageSpinner :loading="isLoading" />
-
   <main class="min-h-screen bg-amber-50 px-4 py-8 sm:px-8 sm:py-12">
     <div class="mx-auto max-w-6xl">
       <RouterLink

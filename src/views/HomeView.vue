@@ -1,19 +1,15 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import { ProductCard, ProductCardSkeleton, Spinner } from '@/components'
 import type { Product } from '@/types'
-import { useCartStore, useProductStore } from '@/stores'
-import { storeToRefs } from 'pinia'
+import { useCartStore } from '@/stores'
 import { useProducts } from '@/composables'
 
-const productStore = useProductStore()
 const cart = useCartStore()
 const route = useRoute()
 const router = useRouter()
-// use reactively even while destructuring
-const { products, isLoading, error, hasMore } = storeToRefs(productStore)
 
 const categories = ref<string[]>([
   'All goods',
@@ -27,15 +23,12 @@ const categories = ref<string[]>([
   'Seasonal markdowns',
 ])
 const selectedCategory = ref('All goods')
-const {
-  products: categoryProducts,
-  isLoading: isCategoryLoading,
-  error: categoryError,
-  fetchProducts: fetchCategoryProducts,
-  cancelFetch: cancelCategoryFetch,
-} = useProducts({ limit: 20, category: selectedCategory.value })
-
-const routeCategory = () => (typeof route.query.category === 'string' ? route.query.category : '')
+const { products, isLoading, error, hasMore, fetchProducts, loadMoreProducts } = useProducts(
+  () => ({
+    limit: 20,
+    category: selectedCategory.value === 'All goods' ? undefined : selectedCategory.value,
+  }),
+)
 
 const loadMoreTrigger = ref<HTMLElement | null>(null)
 
@@ -44,12 +37,8 @@ const loadMoreTrigger = ref<HTMLElement | null>(null)
 let observer: IntersectionObserver | null = null
 
 const loadMore = () => {
-  productStore.loadMoreProducts()
+  void loadMoreProducts()
 }
-onMounted(() => {
-  // Make the api call but dont wait for it to finish,
-  if (!routeCategory()) productStore.fetchProducts()
-})
 
 onMounted(() => {
   observer = new IntersectionObserver(
@@ -90,26 +79,9 @@ watch(
   async (value) => {
     const category = typeof value === 'string' ? value : ''
     selectedCategory.value = category || 'All goods'
-    if (!category || category === 'All goods') {
-      cancelCategoryFetch()
-      return
-    }
-
-    await fetchCategoryProducts()
+    await fetchProducts()
   },
   { immediate: true },
-)
-
-const displayedProducts = computed(() =>
-  selectedCategory.value === 'All goods' ? products.value : categoryProducts.value,
-)
-
-const displayedLoading = computed(() =>
-  selectedCategory.value === 'All goods' ? isLoading.value : isCategoryLoading.value,
-)
-
-const displayedError = computed(() =>
-  selectedCategory.value === 'All goods' ? error.value : categoryError.value,
 )
 
 const addCurrentProductToCart = (product: Product) => {
@@ -150,30 +122,34 @@ const addCurrentProductToCart = (product: Product) => {
     <main class="mx-auto w-full max-w-7xl px-4 pb-10">
       <!-- <ProductBanner /> -->
       <div
-        v-if="displayedLoading && displayedProducts.length === 0"
+        v-if="isLoading && products.length === 0"
         class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         aria-label="Loading products"
       >
         <ProductCardSkeleton v-for="index in 8" :key="index" />
       </div>
 
-      <p v-else-if="displayedError" class="mt-8 py-16 text-center text-red-700">
-        Could not load products: {{ displayedError }}
+      <p v-else-if="error" class="mt-8 py-16 text-center text-red-700">
+        Could not load products: {{ error }}
       </p>
 
       <div v-else class="mt-8">
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <RouterLink
-            v-for="product in displayedProducts"
+            v-for="product in products"
             :key="product.id"
-            :to="`/product/${product.slug}/${product.id}`"
+            :to="{
+              name: 'product-detail',
+              params: { slug: product.slug },
+              query: { id: product.id },
+            }"
             class="block transition-all duration-200 ease-out hover:-translate-y-1 hover:cursor-pointer"
           >
             <ProductCard :product="product" :add-to-cart="() => addCurrentProductToCart(product)" />
           </RouterLink>
         </div>
 
-        <p v-if="displayedProducts.length === 0" class="py-16 text-center text-stone-600">
+        <p v-if="products.length === 0" class="py-16 text-center text-stone-600">
           No products in this category yet.
         </p>
       </div>

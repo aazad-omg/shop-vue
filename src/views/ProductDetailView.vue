@@ -1,39 +1,46 @@
 <script setup lang="ts">
 import { ProductCard, ProductCardSkeleton, ProductImageZoom } from '@/components'
 import { Card } from '@/components/'
-import { useCartStore, useProductStore } from '@/stores'
+import { useCartStore } from '@/stores'
 import { useProducts } from '@/composables'
 import type { Product } from '@/types'
 import { NepaliRupee } from '@lucide/vue'
-import { computed, ref, watch } from 'vue'
-import { storeToRefs } from 'pinia'
-import { useRoute } from 'vue-router'
+import { ref, watch } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
 
 const route = useRoute()
-const productStore = useProductStore()
 // use reactively even while destructuring
-const { products } = storeToRefs(productStore)
 const { fetchProductById, isLoading, error } = useProducts()
+const currentProduct = ref<Product | null>(null)
+const {
+  products: recommendedProducts,
+  isLoading: isLoadingRecommendations,
+  error: recommendationError,
+  fetchProducts: fetchRecommendedProducts,
+  cancelFetch: cancelRecommendedFetch,
+} = useProducts(() => ({
+  limit: 4,
+  excludeId: currentProduct.value?.id,
+}))
 
 const cart = useCartStore()
-
-const currentProduct = ref<Product | null>(null)
-// Any four products but the current one
-const recommendedProducts = computed(() => {
-  return products.value.filter((candidate) => candidate.id !== currentProduct.value?.id).slice(0, 4)
-})
 
 const quantity = ref<number>(1)
 let productRequestId = 0
 
 watch(
-  () => route.params.id,
+  () => route.query.id,
   async () => {
     const requestId = ++productRequestId
     currentProduct.value = null
-    const id = String(route.params.id ?? '')
-    const product = await fetchProductById(id)
-    if (requestId === productRequestId) currentProduct.value = product
+    recommendedProducts.value = []
+    cancelRecommendedFetch()
+    const id = String(route.query.id ?? '')
+    const product = id ? await fetchProductById(id) : null
+    if (requestId === productRequestId && product) {
+      currentProduct.value = product
+      await fetchRecommendedProducts()
+    }
   },
   { immediate: true },
 )
@@ -52,14 +59,22 @@ const addCurrentProductToCart = () => {
   <div class="min-h-screen w-full bg-amber-50">
     <main class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-8 sm:py-12">
       <template v-if="currentProduct">
-        <section class="grid gap-4 lg:grid-cols-2 lg:gap-14">
-          <ProductImageZoom :src="currentProduct.image" :alt="currentProduct.name" />
-
+        <section class="grid gap-4 md:grid-cols-2 md:gap-14">
+          <ProductImageZoom
+            :src="currentProduct.image"
+            :alt="currentProduct.name"
+            class="hidden aspect-square w-full md:block"
+          />
           <Card class="h-fit gap-0 rounded-xl border-0 bg-transparent p-6 shadow-none sm:p-8">
             <p class="text-sm font-semibold text-amber-800">{{ currentProduct.subtitle }}</p>
             <h1 class="mt-2 text-4xl leading-tight font-extrabold text-brand sm:text-5xl">
               {{ currentProduct.name }}
             </h1>
+            <ProductImageZoom
+              :src="currentProduct.image"
+              :alt="currentProduct.name"
+              class="mt-6 aspect-square w-full md:hidden"
+            />
             <p class="mt-7 flex items-center text-3xl font-bold text-stone-900">
               <NepaliRupee :size="22" color="#2a3a5e" :stroke-width="2.75" />
               <span class="pl-1">{{ currentProduct.price.toFixed(2) }}</span>
@@ -119,26 +134,42 @@ const addCurrentProductToCart = () => {
           </Card>
         </section>
 
-        <section class="mt-20">
+        <section
+          v-if="isLoadingRecommendations || recommendationError || recommendedProducts.length"
+          class="mt-20"
+          aria-label="Recommended products"
+        >
           <h2 class="text-2xl font-bold text-stone-900">You might also like</h2>
+          <p v-if="recommendationError" class="mt-4 text-red-700">
+            Could not load recommendations: {{ recommendationError }}
+          </p>
           <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             <RouterLink
               v-for="product in recommendedProducts"
               :key="product.id"
-              :to="`/product/${product.slug}/${product.id}`"
+              :to="{
+                name: 'product-detail',
+                params: { slug: product.slug },
+                query: { id: product.id },
+              }"
               class="block transition-all duration-200 ease-out hover:-translate-y-1 hover:cursor-pointer"
             >
               <ProductCard :product="product" :add-to-cart="() => addProductToCart(product)" />
             </RouterLink>
+            <ProductCardSkeleton
+              v-for="index in isLoadingRecommendations ? 4 - recommendedProducts.length : 0"
+              :key="`recommendation-skeleton-${index}`"
+            />
           </div>
         </section>
       </template>
 
       <template v-else-if="isLoading">
-        <section class="grid gap-4 lg:grid-cols-2 lg:gap-14" aria-label="Loading product">
-          <div class="flex w-full items-center justify-center">
-            <div class="h-full w-[90%] animate-pulse rounded-md bg-gray-400" aria-hidden="true" />
-          </div>
+        <section
+          class="grid gap-4 md:grid-cols-2 md:gap-14"
+          aria-label="Loading product"
+        >
+          <div class="hidden aspect-square w-full animate-pulse rounded-md bg-gray-400 md:block" />
           <Card
             aria-hidden="true"
             class="h-fit animate-pulse gap-0 rounded-xl border-0 bg-transparent p-6 shadow-none sm:p-8"
@@ -148,6 +179,7 @@ const addCurrentProductToCart = () => {
               <div class="h-10 w-4/5 rounded bg-gray-400" />
               <div class="h-10 w-3/5 rounded bg-gray-400" />
             </div>
+            <div class="mt-6 aspect-square w-full rounded-md bg-gray-400 md:hidden" />
             <div class="mt-7 h-9 w-28 rounded bg-gray-400" />
             <Card class="mt-6 gap-4 rounded-lg border-stone-200 bg-white p-4 shadow-none sm:p-5">
               <div class="space-y-2">

@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import type { Product } from '@/types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './tooltip'
 import { NepaliRupee } from '@lucide/vue'
 import { useImageFallback } from '@/composables'
+import { useMediaQuery } from '@vueuse/core'
 
 const { fallbackImage, handleImageError } = useImageFallback()
+const isAboveMd = useMediaQuery('(min-width: 48rem)')
 
 type Props = {
   product: Product
@@ -44,12 +47,26 @@ const props = withDefaults(defineProps<Props>(), {
         <p class="text-sm font-semibold">+ Add</p>
       </button>
     </div>
+
     <CardHeader class="gap-1 px-4 pt-4 pb-0">
-      <CardTitle class="text-lg font-semibold text-gray-800">
+      <TooltipProvider v-if="isAboveMd">
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <CardTitle class="text-lg font-semibold text-gray-800 line-clamp-1">
+              {{ props.product.name }}
+            </CardTitle>
+          </TooltipTrigger>
+          <TooltipContent>{{ props.product.name }}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <CardTitle v-else class="text-lg font-semibold text-gray-800 line-clamp-1">
         {{ props.product.name }}
       </CardTitle>
+
       <CardDescription>{{ props.product.subtitle }}</CardDescription>
     </CardHeader>
+
     <CardContent class="px-4 pt-3 pb-4">
       <p class="text-sm text-gray-600 line-clamp-2">{{ props.product.description }}</p>
       <div class="mt-3 flex items-center justify-between">
