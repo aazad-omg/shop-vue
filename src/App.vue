@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import 'vue-sonner/style.css'
 import { storeToRefs } from 'pinia'
 import { FullPageSpinner, Toaster } from '@/components'
 import { useUiStore } from '@/stores'
+import 'vue-sonner/style.css'
 
 const uiStore = useUiStore()
 const { isFullPageLoading } = storeToRefs(uiStore)

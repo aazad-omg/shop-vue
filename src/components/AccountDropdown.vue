@@ -2,6 +2,7 @@
 import { LogOut } from '@lucide/vue'
 import { computed } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
+import { getInitials } from '@/helpers/getInitials'
 import { useAuthStore, useCartStore, useUiStore } from '@/stores'
 import { toast } from 'vue-sonner'
 import {
@@ -11,27 +12,19 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from './dropdown-menu'
+} from './ui/dropdown-menu'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const cart = useCartStore()
 const uiStore = useUiStore()
 
-const userName = computed(
-  () =>
-    authStore.user?.user_metadata?.full_name ??
-    authStore.user?.user_metadata?.name ??
-    authStore.user?.email ??
-    'profile',
-)
+const userName = computed(() => authStore.user?.full_name ?? authStore.user?.email ?? 'profile')
 
-const userInitial = computed(
-  () => String(userName.value).trim().charAt(0).toLocaleUpperCase() || '?',
-)
+const userInitial = computed(() => getInitials(String(userName.value)))
 
 const handleLogout = async () => {
-  uiStore.isFullPageLoading = true
+  uiStore.startSpinner()
 
   try {
     const signedOut = await authStore.signOut()
@@ -44,7 +37,7 @@ const handleLogout = async () => {
     cart.clearCart()
     await router.replace('/')
   } finally {
-    uiStore.isFullPageLoading = false
+    uiStore.stopSpinner()
   }
 }
 </script>

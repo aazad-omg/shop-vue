@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { NepaliRupee } from '@lucide/vue'
 import { RouterLink } from 'vue-router'
 import AccountDropdown from './AccountDropdown.vue'
+import ShopLogo from './ShopLogo.vue'
 </script>
 
 <template>
@@ -13,8 +13,7 @@ import AccountDropdown from './AccountDropdown.vue'
       class="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8"
     >
       <RouterLink to="/admin" class="flex min-w-0 items-center gap-2 font-extrabold text-brand">
-        <span class="text-2xl sm:text-3xl">ShopVue</span>
-        <NepaliRupee :size="30" color="#dd0808" :stroke-width="2.5" />
+        <ShopLogo />
         <span
           class="ml-1 hidden border-l border-stone-300 pl-3 text-sm font-semibold text-stone-600 sm:inline"
         >

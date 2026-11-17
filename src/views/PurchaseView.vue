@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import useVuelidate from '@vuelidate/core'
-import { email as emailValidator, required } from '@vuelidate/validators'
 import { Card } from '@/components'
 import { useImageFallback } from '@/composables'
 import { useCartStore, useUiStore } from '@/stores'
@@ -9,6 +8,7 @@ import { ArrowLeft, NepaliRupee, ShoppingCart, Trash2 } from '@lucide/vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { toast } from 'vue-sonner'
+import { nameRules, emailRules, addressRules } from '@/validations/common'
 
 const cart = useCartStore()
 const uiStore = useUiStore()
@@ -24,9 +24,9 @@ const trackingSteps = [{ title: 'Checkout' }, { title: 'Processing' }, { title: 
 let loadingTimeout: ReturnType<typeof setTimeout> | undefined
 
 onMounted(() => {
-  uiStore.isFullPageLoading = true
+  uiStore.startSpinner()
   loadingTimeout = setTimeout(() => {
-    uiStore.isFullPageLoading = false
+    uiStore.stopSpinner()
   }, 2000)
 })
 
@@ -36,13 +36,13 @@ const cleanupTimers = () => {
 
 onUnmounted(() => {
   cleanupTimers()
-  uiStore.isFullPageLoading = false
+  uiStore.stopSpinner()
 })
 
 const rules = computed(() => ({
-  fullName: { required },
-  email: { required, email: emailValidator },
-  address: { required },
+  fullName: nameRules,
+  email: emailRules,
+  address: addressRules,
 }))
 
 const v$ = useVuelidate(rules, { fullName, email, address })
@@ -53,9 +53,9 @@ const submitOrder = async () => {
   if (!isValid) return
 
   cleanupTimers()
-  uiStore.isFullPageLoading = true
+  uiStore.startSpinner()
   loadingTimeout = setTimeout(() => {
-    uiStore.isFullPageLoading = false
+    uiStore.stopSpinner()
     cart.clearCart()
     orderPlaced.value = true
     trackingStep.value = 1

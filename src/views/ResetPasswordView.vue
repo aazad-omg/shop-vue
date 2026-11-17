@@ -2,10 +2,10 @@
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import useVuelidate from '@vuelidate/core'
-import { minLength, required, sameAs } from '@vuelidate/validators'
 import { Eye, EyeOff, NepaliRupee } from '@lucide/vue'
 import { Button, InputGroup, InputGroupAddon, InputGroupInput, Label, Spinner } from '@/components'
 import { useAuthStore } from '@/stores'
+import { passwordRules, confirmPasswordRules } from '@/validations/common'
 
 const authStore = useAuthStore()
 const { error, isChangingPassword, isPasswordRecovery } = storeToRefs(authStore)
@@ -16,14 +16,8 @@ const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
 const rules = computed(() => ({
-  password: {
-    required,
-    minLength: minLength(6),
-  },
-  confirmPassword: {
-    required,
-    sameAsPassword: sameAs(password),
-  },
+  password: passwordRules,
+  confirmPassword: confirmPasswordRules(password),
 }))
 
 const v$ = useVuelidate(rules, { password, confirmPassword })
@@ -117,11 +111,7 @@ const onSubmit = async () => {
           </InputGroupAddon>
         </InputGroup>
         <p class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
-          {{
-            v$.confirmPassword.$error
-              ? v$.confirmPassword.$errors[0]?.$message
-              : ''
-          }}
+          {{ v$.confirmPassword.$error ? v$.confirmPassword.$errors[0]?.$message : '' }}
         </p>
       </div>
 

@@ -3,9 +3,8 @@ import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import useVuelidate from '@vuelidate/core'
-import { email as emailValidator, required } from '@vuelidate/validators'
-import { NepaliRupee } from '@lucide/vue'
-import { Button, InputGroup, InputGroupInput, Label, Spinner } from '@/components'
+import { emailRules } from '@/validations/common'
+import { Button, InputGroup, InputGroupInput, Label, ShopLogo, Spinner } from '@/components'
 import { useAuthStore } from '@/stores'
 
 const router = useRouter()
@@ -15,10 +14,7 @@ const email = ref('')
 const requestSubmitted = ref(false)
 
 const rules = computed(() => ({
-  email: {
-    required,
-    email: emailValidator,
-  },
+  email: emailRules,
 }))
 
 const v$ = useVuelidate(rules, { email })
@@ -43,10 +39,9 @@ const onSubmit = async () => {
   <div
     class="mx-auto my-10 flex w-full max-w-lg flex-col gap-5 rounded-2xl border border-amber-900/15 bg-white p-10 shadow-2xl shadow-amber-950/25 md:border"
   >
-    <div class="flex items-center justify-center gap-2 pb-5">
-      <p class="text-center text-3xl font-bold tracking-wide text-brand-900">ShopVue</p>
-      <NepaliRupee :size="35" color="#dd0808" :stroke-width="2.5" />
-    </div>
+    <RouterLink to="/" class="flex justify-center">
+      <ShopLogo />
+    </RouterLink>
 
     <h1 class="text-2xl font-semibold text-brand text-center">Forgot your password?</h1>
     <div v-if="!requestSubmitted" class="text-center">

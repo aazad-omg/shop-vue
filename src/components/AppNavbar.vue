@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { NepaliRupee, ShoppingCart } from '@lucide/vue'
+import { ShoppingCart } from '@lucide/vue'
 import { RouterLink } from 'vue-router'
 import { useAuthStore, useCartStore } from '@/stores'
 import { CartDrawer } from '@/components/cart'
+import ShopLogo from './ShopLogo.vue'
 import AccountDropdown from './AccountDropdown.vue'
 import ProductSearch from './ProductSearch.vue'
 
@@ -18,10 +19,7 @@ const authStore = useAuthStore()
       class="mx-auto grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 px-4 py-3 sm:px-6 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-6 lg:gap-x-8 lg:px-8"
     >
       <RouterLink to="/" class="min-w-0">
-        <div class="flex items-center gap-2 font-extrabold text-brand">
-          <p class="text-3xl">ShopVue</p>
-          <NepaliRupee :size="35" color="#dd0808" :stroke-width="2.5" />
-        </div>
+        <ShopLogo />
       </RouterLink>
 
       <ProductSearch />

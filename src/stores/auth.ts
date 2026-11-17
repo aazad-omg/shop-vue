@@ -5,6 +5,7 @@ import { supabase } from '@/supabase'
 import { getAvatarUrl, uploadAvatar } from '@/services'
 
 type Profile = {
+  id: string
   full_name: string | null
   email: string | null
   phone_number: string | null
@@ -26,9 +27,9 @@ export const useAuthStore = defineStore('auth', () => {
   const isPasswordRecovery = ref(false)
   const isRequestingPasswordReset = ref(false)
   const isUploadingAvatar = ref(false)
-  const profile = ref<Profile | null>(null)
   const role = ref<Role | null>(null)
-  const user = ref<User | null>(null)
+  const user = ref<Profile | null>(null)
+  const authUser = ref<User | null>(null)
   let isInitialized = false
 
   const canManageProducts = () => role.value === 'admin'
@@ -60,7 +61,9 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (error) throw error
 
-      user.value = data.user
+      authUser.value = data.user
+      user.value = null
+      avatarUrl.value = null
       isAuth.value = true
       await fetchProfile()
       return true
@@ -97,7 +100,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const changePassword = async (password: string) => {
-    if (!user.value) {
+    if (!authUser.value) {
       error.value = 'You must be signed in to change your password'
       return false
     }
@@ -124,7 +127,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const updateProfile = async (name: string, email: string, phone: string) => {
-    if (!user.value) {
+    if (!authUser.value) {
       error.value = 'You must be signed in to update your profile'
       return false
     }
@@ -137,18 +140,18 @@ export const useAuthStore = defineStore('auth', () => {
         .from('profiles')
         .upsert(
           {
-            id: user.value.id,
+            id: authUser.value.id,
             full_name: name,
             email,
             phone_number: phone,
-            avatar_path: profile.value?.avatar_path ?? null,
+            avatar_path: user.value?.avatar_path ?? null,
           },
           { onConflict: 'id' },
         )
-        .select('full_name, email, phone_number, avatar_path')
+        .select('id, full_name, email, phone_number, avatar_path')
         .single()
       if (error) throw error
-      profile.value = data
+      user.value = data
       avatarUrl.value = data.avatar_path ? await getAvatarUrl(data.avatar_path) : null
 
       return true
@@ -161,7 +164,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const fetchProfile = async () => {
-    if (!user.value) {
+    if (!authUser.value) {
       error.value = 'You must be signed in to view your profile'
       return false
     }
@@ -172,13 +175,13 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const { data, error: fetchError } = await supabase
         .from('profiles')
-        .select('full_name, email, phone_number, avatar_path')
-        .eq('id', user.value.id)
+        .select('id, full_name, email, phone_number, avatar_path')
+        .eq('id', authUser.value.id)
         .maybeSingle()
 
       if (fetchError) throw fetchError
 
-      profile.value = data
+      user.value = data
       avatarUrl.value = data?.avatar_path ? await getAvatarUrl(data.avatar_path) : null
       return true
     } catch (fetchError: unknown) {
@@ -190,7 +193,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const uploadProfileAvatar = async (file: File) => {
-    if (!user.value) {
+    if (!authUser.value) {
       error.value = 'You must be signed in to upload a profile picture'
       return false
     }
@@ -199,11 +202,12 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      const avatarPath = await uploadAvatar(file, profile.value?.avatar_path)
-      profile.value = {
-        full_name: profile.value?.full_name ?? null,
-        email: profile.value?.email ?? null,
-        phone_number: profile.value?.phone_number ?? null,
+      const avatarPath = await uploadAvatar(file, user.value?.avatar_path)
+      user.value = {
+        id: authUser.value.id,
+        full_name: user.value?.full_name ?? null,
+        email: user.value?.email ?? null,
+        phone_number: user.value?.phone_number ?? null,
         avatar_path: avatarPath,
       }
       avatarUrl.value = await getAvatarUrl(avatarPath)
@@ -219,7 +223,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const resetAuth = () => {
     user.value = null
-    profile.value = null
+    authUser.value = null
     avatarUrl.value = null
     isAuth.value = false
     error.value = null
@@ -245,7 +249,12 @@ export const useAuthStore = defineStore('auth', () => {
     if (isInitialized) return
 
     supabase.auth.onAuthStateChange((_event, session) => {
-      user.value = session?.user ?? null
+      const nextAuthUser = session?.user ?? null
+      if (!nextAuthUser || nextAuthUser.id !== authUser.value?.id) {
+        user.value = null
+        avatarUrl.value = null
+      }
+      authUser.value = nextAuthUser
       isAuth.value = session !== null
 
       if (_event === 'PASSWORD_RECOVERY') {
@@ -261,18 +270,19 @@ export const useAuthStore = defineStore('auth', () => {
 
     if (sessionError) throw sessionError
 
-    user.value = data.session?.user ?? null
+    authUser.value = data.session?.user ?? null
+    user.value = null
     isAuth.value = data.session !== null
     isPasswordRecovery.value =
       data.session !== null && sessionStorage.getItem(Password_Recovery_Storage_Key) === 'true'
     if (!data.session) sessionStorage.removeItem(Password_Recovery_Storage_Key)
     isInitialized = true
-    if (user.value) await fetchProfile()
+    if (authUser.value) await fetchProfile()
   }
 
   return {
     user,
-    profile,
+    authUser,
     avatarUrl,
     isAuth,
     isLoading,
