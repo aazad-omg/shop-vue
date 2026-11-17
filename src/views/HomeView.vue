@@ -23,6 +23,7 @@ const categories = ref<string[]>([
   'Seasonal markdowns',
 ])
 const selectedCategory = ref('All goods')
+const loadMoreTrigger = ref<HTMLElement | null>(null)
 const { products, isLoading, error, hasMore, fetchProducts, loadMoreProducts } = useProducts(
   () => ({
     limit: 20,
@@ -30,15 +31,19 @@ const { products, isLoading, error, hasMore, fetchProducts, loadMoreProducts } =
   }),
 )
 
-const loadMoreTrigger = ref<HTMLElement | null>(null)
-
 // Detect when an HTML element
 // enters or leaves the visible area of the browser
 let observer: IntersectionObserver | null = null
 
-const loadMore = () => {
-  void loadMoreProducts()
-}
+watch(
+  () => route.query.category,
+  async (value) => {
+    const category = typeof value === 'string' ? value : ''
+    selectedCategory.value = category || 'All goods'
+    await fetchProducts()
+  },
+  { immediate: true },
+)
 
 onMounted(() => {
   observer = new IntersectionObserver(
@@ -64,6 +69,10 @@ onUnmounted(() => {
   observer?.disconnect()
 })
 
+const loadMore = () => {
+  void loadMoreProducts()
+}
+
 const selectCategory = (category: string) => {
   router.push({
     query: {
@@ -72,17 +81,6 @@ const selectCategory = (category: string) => {
     },
   })
 }
-
-// watch the route query parameter for category changes and fetch products accordingly
-watch(
-  () => route.query.category,
-  async (value) => {
-    const category = typeof value === 'string' ? value : ''
-    selectedCategory.value = category || 'All goods'
-    await fetchProducts()
-  },
-  { immediate: true },
-)
 
 const addCurrentProductToCart = (product: Product) => {
   cart.addToCart(product, 1)
