@@ -10,7 +10,7 @@ import {
 } from '@/validations/common'
 import { toast } from 'vue-sonner'
 import { ChevronDown, Eye, EyeOff } from '@lucide/vue'
-import { getInitials } from '@/helpers/getInitials'
+import { getInitials } from '@/helpers'
 import {
   Accordion,
   AccordionContent,

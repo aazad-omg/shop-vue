@@ -1,28 +1,40 @@
 <script setup lang="ts">
+import { LayoutDashboard, Package } from '@lucide/vue'
 import { AdminNavbar } from '@/components'
+
+const navigation = [
+  { label: 'Overview', name: 'admin-dashboard', icon: LayoutDashboard },
+  { label: 'Products', name: 'admin-products', icon: Package },
+]
 </script>
 
 <template>
   <div class="min-h-screen bg-stone-50">
     <AdminNavbar />
 
-    <div class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row lg:px-8">
+    <div
+      class="mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row lg:gap-10 lg:px-8 lg:py-10"
+    >
       <aside class="shrink-0 lg:w-56">
-        <p class="mb-3 px-3 text-xs font-semibold uppercase tracking-wide text-stone-500">
-          Administration
+        <p class="mb-3 px-3 text-xs font-semibold uppercase tracking-[0.16em] text-stone-400">
+          Workspace
         </p>
-        <nav aria-label="Admin navigation" class="flex gap-2 lg:flex-col">
+        <nav aria-label="Admin navigation" class="flex gap-2 overflow-x-auto lg:flex-col p-2">
           <RouterLink
-            :to="{ name: 'admin-dashboard' }"
-            class="rounded-md px-3 py-2 font-medium text-stone-700 transition-colors hover:bg-white hover:text-brand"
-            active-class="bg-white text-brand shadow-sm"
+            v-for="item in navigation"
+            :key="item.name"
+            :to="{ name: item.name }"
+            class="flex shrink-0 items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-950"
+            active-class="border-stone-200 bg-white text-stone-950 shadow-sm"
+            exact-active-class="border-stone-200 bg-white text-stone-950 shadow-sm"
           >
-            Overview
+            <component :is="item.icon" class="size-4" :stroke-width="1.8" />
+            {{ item.label }}
           </RouterLink>
         </nav>
       </aside>
 
-      <main class="min-w-0 flex-1 rounded-xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
+      <main class="min-w-0 flex-1">
         <RouterView />
       </main>
     </div>
