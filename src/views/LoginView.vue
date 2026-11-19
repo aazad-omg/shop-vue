@@ -4,10 +4,19 @@ import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores'
 import useVuelidate from '@vuelidate/core'
-import { Button, InputGroup, InputGroupAddon, InputGroupInput, Label, Spinner } from '@/components'
-import { Eye, EyeOff, NepaliRupee } from '@lucide/vue'
+import {
+  Button,
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  Label,
+  ShopLogo,
+  Spinner,
+} from '@/components'
+import { Eye, EyeOff } from '@lucide/vue'
 import { toast } from 'vue-sonner'
-import { email as emailValidator, minLength, required } from '@vuelidate/validators'
+import { emailRules } from '@/validations/common'
+import { helpers, minLength, required } from '@vuelidate/validators'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -17,6 +26,7 @@ const email = ref<string>('')
 const password = ref<string>('')
 const showPassword = ref<boolean>(false)
 const rememberMe = ref<boolean>(false)
+
 const rememberedEmailKey = 'shopvue-remembered-email'
 
 onMounted(() => {
@@ -28,13 +38,10 @@ onMounted(() => {
 })
 
 const rules = computed(() => ({
-  email: {
-    required,
-    email: emailValidator,
-  },
+  email: emailRules,
   password: {
-    required,
-    minLength: minLength(6),
+    required: helpers.withMessage('Please enter a password.', required),
+    minLength: helpers.withMessage('Password must be at least 6 characters.', minLength(6)),
   },
 }))
 
@@ -73,10 +80,10 @@ const onSubmit = async () => {
   <div
     class="mx-auto my-10 flex w-full max-w-lg flex-col gap-5 rounded-2xl md:border border-amber-900/15 bg-white p-10 md:shadow-2xl shadow-amber-950/25"
   >
-    <div class="flex justify-center items-center gap-2 pb-7">
-      <p class="text-center text-3xl font-bold tracking-wide text-brand-900">ShopVue</p>
-      <NepaliRupee :size="35" color="#dd0808" :stroke-width="2.5" />
-    </div>
+    <RouterLink to="/" class="flex justify-center">
+      <ShopLogo />
+    </RouterLink>
+
     <div><p class="text-center text-2xl text-brand font-semibold">Login</p></div>
     <form novalidate @submit.prevent="onSubmit">
       <div class="mb-4">
@@ -97,6 +104,7 @@ const onSubmit = async () => {
             :aria-invalid="v$.email.$error"
           />
         </InputGroup>
+        <!-- create an error component -->
         <p class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
           {{ v$.email.$error ? v$.email.$errors[0]?.$message : '' }}
         </p>

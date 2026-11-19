@@ -3,5 +3,14 @@ import { ref } from 'vue'
 
 export const useUiStore = defineStore('ui', () => {
   const isFullPageLoading = ref(false)
-  return { isFullPageLoading }
+
+  const startSpinner = () => {
+    isFullPageLoading.value = true
+  }
+
+  const stopSpinner = () => {
+    isFullPageLoading.value = false
+  }
+
+  return { isFullPageLoading, startSpinner, stopSpinner }
 })

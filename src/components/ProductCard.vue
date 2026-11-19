@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Product } from '@/types'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './tooltip'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 import { NepaliRupee } from '@lucide/vue'
 import { useImageFallback } from '@/composables'
 import { useMediaQuery } from '@vueuse/core'

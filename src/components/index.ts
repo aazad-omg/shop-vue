@@ -1,3 +1,16 @@
-export { default as ProductImageZoom } from './ProductImageZoom.vue'
-
 export * from './ui'
+
+export { default as AppNavbar } from './AppNavbar.vue'
+export { default as AdminNavbar } from './AdminNavbar.vue'
+export { default as AccountDropdown } from './AccountDropdown.vue'
+export { default as BaseButton } from './BaseButton.vue'
+export { default as BaseInput } from './BaseInput.vue'
+export { default as FullPageSpinner } from './FullPageSpinner.vue'
+export { default as ImageUploadInput } from './ImageUploadInput.vue'
+export { default as PasswordStrengthIndicator } from './PasswordStrengthIndicator.vue'
+export { default as ProductBanner } from './ProductBanner.vue'
+export { default as ProductCard } from './ProductCard.vue'
+export { default as ProductCardSkeleton } from './ProductCardSkeleton.vue'
+export { default as ProductImageZoom } from './ProductImageZoom.vue'
+export { default as ProductSearch } from './ProductSearch.vue'
+export { default as ShopLogo } from './ShopLogo.vue'

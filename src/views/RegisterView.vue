@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import useVuelidate from '@vuelidate/core'
-import { computed, ref } from 'vue'
+import { computed, reactive, ref, toRef } from 'vue'
 import { useRouter } from 'vue-router'
-import { email as emailValidator, minLength, sameAs, required } from '@vuelidate/validators'
-import { Button } from '@/components'
-import { InputGroup, InputGroupAddon, InputGroupInput, Label, Spinner } from '@/components'
-import { Eye, EyeOff, NepaliRupee } from '@lucide/vue'
+import { nameRules, emailRules, passwordRules, confirmPasswordRules } from '@/validations/common'
+import { Button, PasswordStrengthIndicator, ShopLogo } from '@/components'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  Label,
+  Spinner,
+} from '@/components'
+import { Eye, EyeOff } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { useAuthStore } from '@/stores'
 import { storeToRefs } from 'pinia'
@@ -14,40 +20,33 @@ const router = useRouter()
 const authStore = useAuthStore()
 const { isLoading, error } = storeToRefs(authStore)
 
-const name = ref<string>('')
-const email = ref<string>('')
-const password = ref<string>('')
-const confirmPassword = ref<string>('')
+const registrationForm = reactive({
+  name: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+})
 
 const showPassword = ref<boolean>(false)
 const showConfirmPassword = ref<boolean>(false)
 
 const rules = computed(() => ({
-  name: {
-    required,
-    minLength: minLength(2),
-  },
-  email: {
-    required,
-    email: emailValidator,
-  },
-  password: {
-    required,
-    minLength: minLength(6),
-  },
-  confirmPassword: {
-    required,
-    minLength: minLength(6),
-    sameAsPassword: sameAs(password),
-  },
+  name: nameRules,
+  email: emailRules,
+  password: passwordRules,
+  confirmPassword: confirmPasswordRules(toRef(registrationForm, 'password')),
 }))
-const v$ = useVuelidate(rules, { name, email, password, confirmPassword })
+const v$ = useVuelidate(rules, registrationForm)
 
 const onSubmit = async () => {
   const isValid = await v$.value.$validate()
   if (!isValid) return
 
-  const signedUp = await authStore.signUp(email.value, password.value, name.value)
+  const signedUp = await authStore.signUp(
+    registrationForm.email,
+    registrationForm.password,
+    registrationForm.name,
+  )
 
   if (!signedUp) {
     toast.error(error.value ?? 'Registration failed')
@@ -63,10 +62,9 @@ const onSubmit = async () => {
   <div
     class="mx-auto my-10 flex w-full max-w-lg flex-col gap-5 rounded-2xl md:border border-amber-900/15 bg-white p-10 md:shadow-2xl shadow-amber-950/25"
   >
-    <div class="flex justify-center items-center gap-2 pb-7">
-      <p class="text-center text-3xl font-bold tracking-wide text-brand-900">ShopVue</p>
-      <NepaliRupee :size="35" color="#dd0808" :stroke-width="2.5" />
-    </div>
+    <RouterLink to="/" class="flex justify-center">
+      <ShopLogo />
+    </RouterLink>
     <div><p class="text-center text-2xl font-semibold text-brand">Create your account</p></div>
 
     <form novalidate @submit.prevent="onSubmit">
@@ -145,6 +143,7 @@ const onSubmit = async () => {
             </button>
           </InputGroupAddon>
         </InputGroup>
+        <PasswordStrengthIndicator :password="registrationForm.password" />
         <p class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
           {{ v$.password.$error ? v$.password.$errors[0]?.$message : '' }}
         </p>

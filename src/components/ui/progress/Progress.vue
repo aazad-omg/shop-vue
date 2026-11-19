@@ -9,13 +9,18 @@ import {
 } from "reka-ui"
 
 const props = withDefaults(
-  defineProps<ProgressRootProps & { class?: HTMLAttributes["class"] }>(),
+  defineProps<
+    ProgressRootProps & {
+      class?: HTMLAttributes["class"]
+      indicatorClass?: HTMLAttributes["class"]
+    }
+  >(),
   {
     modelValue: 0,
   },
 )
 
-const delegatedProps = reactiveOmit(props, "class")
+const delegatedProps = reactiveOmit(props, "class", "indicatorClass")
 </script>
 
 <template>
@@ -31,7 +36,7 @@ const delegatedProps = reactiveOmit(props, "class")
   >
     <ProgressIndicator
       data-slot="progress-indicator"
-      class="bg-primary h-full w-full flex-1 transition-all"
+      :class="cn('bg-primary h-full w-full flex-1 transition-all', props.indicatorClass)"
       :style="`transform: translateX(-${100 - (props.modelValue ?? 0)}%);`"
     />
   </ProgressRoot>
