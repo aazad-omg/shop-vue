@@ -62,7 +62,7 @@ const onSubmit = async () => {
   <div
     class="mx-auto my-10 flex w-full max-w-lg flex-col gap-5 rounded-2xl md:border border-amber-900/15 bg-white p-10 md:shadow-2xl shadow-amber-950/25"
   >
-    <RouterLink to="/" class="flex justify-center">
+    <RouterLink :to="{ name: 'home' }" class="flex justify-center">
       <ShopLogo />
     </RouterLink>
     <div><p class="text-center text-2xl font-semibold text-brand">Create your account</p></div>

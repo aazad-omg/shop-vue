@@ -14,6 +14,7 @@ type ProductOptions = {
 
 export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
   const products = ref<Product[]>([])
+  const totalCount = ref(0)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const hasMore = ref(true)
@@ -26,13 +27,13 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
     error.value = null
   }
 
-  const fetchPage = async (append: boolean) => {
+  const fetchPage = async (append: boolean, page = 1) => {
     activeController?.abort()
     const controller = new AbortController()
     activeController = controller
     const refOptions = toValue(options)
     const pageSize = refOptions.limit ?? 20
-    const from = append ? products.value.length : 0
+    const from = append ? products.value.length : (page - 1) * pageSize
     const to = from + pageSize - 1
 
     isLoading.value = true
@@ -43,7 +44,7 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
     }
 
     try {
-      let query = supabase.from('products').select('*')
+      let query = supabase.from('products').select('*', { count: 'exact' })
       const searchTerm = refOptions.searchTerm?.trim()
 
       if (searchTerm) {
@@ -63,10 +64,13 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
         .abortSignal(controller.signal)
 
       if (response.error) throw response.error
+      if (response.count === null)
+        throw new Error('Could not determine the total number of products')
 
       if (activeController === controller) {
         const page = response.data ?? []
         products.value = append ? [...products.value, ...page] : page
+        totalCount.value = response.count
         hasMore.value = page.length === pageSize
       }
     } catch (err) {
@@ -93,7 +97,7 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
     }
   }
 
-  const fetchProducts = () => fetchPage(false)
+  const fetchProducts = (page = 1) => fetchPage(false, page)
 
   const loadMoreProducts = () => {
     if (isLoading.value || !hasMore.value) return Promise.resolve()
@@ -151,6 +155,7 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
 
   return {
     products,
+    totalCount,
     isLoading,
     error,
     hasMore,

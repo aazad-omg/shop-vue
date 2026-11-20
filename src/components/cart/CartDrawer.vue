@@ -11,10 +11,10 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components'
-import { useImageFallback } from '@/composables'
+import { handleImageFallback } from '@/helpers'
 
 const cart = useCartStore()
-const { fallbackImage, handleImageError } = useImageFallback()
+const { fallbackImage, handleImageError } = handleImageFallback()
 
 const handleOpenChange = (open: boolean) => {
   if (open) cart.openDrawer()
@@ -65,7 +65,7 @@ const handleInteractOutside = (event: Event) => {
         <p class="text-lg font-semibold text-stone-900">Your cart is empty</p>
         <p class="mt-1 text-sm text-stone-500">Find something you love and add it here.</p>
         <RouterLink
-          to="/"
+          :to="{ name: 'home' }"
           class="mt-5 rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-800"
           @click="cart.closeDrawer"
         >

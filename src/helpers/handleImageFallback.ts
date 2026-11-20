@@ -1,4 +1,4 @@
-export function useImageFallback(fallbackImage = '/product-placeholder.svg') {
+export function handleImageFallback(fallbackImage = '/product-placeholder.svg') {
   const handleImageError = (event: Event) => {
     const target = event.currentTarget
 

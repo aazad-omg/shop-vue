@@ -59,6 +59,13 @@ const onSubmit = async () => {
     return
   }
 
+  const name =
+    authStore.user?.full_name?.trim() || authStore.user?.email || authStore.authUser?.email || 'there'
+  const greeting = authStore.canManageProducts()
+    ? `Welcome back, ${name}! Admin access is ready.`
+    : `Welcome back, ${name}!`
+  toast.success(greeting)
+
   if (rememberMe.value) {
     localStorage.setItem(rememberedEmailKey, email.value)
   } else {
@@ -70,7 +77,7 @@ const onSubmit = async () => {
   const isSafeRedirect =
     typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//')
 
-  const destination = isSafeRedirect ? redirect : '/'
+  const destination = isSafeRedirect ? redirect : authStore.canManageProducts() ? '/admin' : '/'
 
   await router.replace(destination)
 }
@@ -80,7 +87,7 @@ const onSubmit = async () => {
   <div
     class="mx-auto my-10 flex w-full max-w-lg flex-col gap-5 rounded-2xl md:border border-amber-900/15 bg-white p-10 md:shadow-2xl shadow-amber-950/25"
   >
-    <RouterLink to="/" class="flex justify-center">
+    <RouterLink :to="{ name: 'home' }" class="flex justify-center">
       <ShopLogo />
     </RouterLink>
 

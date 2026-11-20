@@ -14,14 +14,15 @@ import { XIcon } from '@lucide/vue'
 import type { Product } from '@/types'
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useImageFallback, useProducts } from '@/composables'
+import { useProducts } from '@/composables'
+import { handleImageFallback } from '@/helpers'
 
 const router = useRouter()
 const searchElement = ref<HTMLElement | null>(null)
 const searchTerm = ref('')
 const isAboveMd = useMediaQuery('(min-width: 48rem)')
 
-const { fallbackImage, handleImageError } = useImageFallback()
+const { fallbackImage, handleImageError } = handleImageFallback()
 
 const {
   products: searchResults,
@@ -35,7 +36,7 @@ const {
 }))
 
 const debouncedProductSearch = useDebounceFn(() => {
-  void fetchProductSearch()
+  fetchProductSearch()
 }, 300)
 
 watch(searchTerm, (term) => {
@@ -47,7 +48,7 @@ watch(searchTerm, (term) => {
     return
   }
 
-  void debouncedProductSearch()
+  debouncedProductSearch()
 })
 
 const clearSearch = () => {

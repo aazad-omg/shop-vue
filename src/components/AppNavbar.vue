@@ -18,7 +18,7 @@ const authStore = useAuthStore()
     <div
       class="mx-auto grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 px-4 py-3 sm:px-6 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-6 lg:gap-x-8 lg:px-8"
     >
-      <RouterLink to="/" class="min-w-0">
+      <RouterLink :to="{ name: 'home' }" class="min-w-0">
         <ShopLogo />
       </RouterLink>
 

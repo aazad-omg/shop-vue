@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import useVuelidate from '@vuelidate/core'
 import { Card } from '@/components'
-import { useImageFallback } from '@/composables'
+import { handleImageFallback } from '@/helpers'
 import { useCartStore, useUiStore } from '@/stores'
 import { Progress } from '@/components'
 import { ArrowLeft, NepaliRupee, ShoppingCart, Trash2 } from '@lucide/vue'
@@ -13,7 +13,7 @@ import { nameRules, emailRules, addressRules } from '@/validations/common'
 const cart = useCartStore()
 const uiStore = useUiStore()
 
-const { fallbackImage, handleImageError } = useImageFallback()
+const { fallbackImage, handleImageError } = handleImageFallback()
 const orderPlaced = ref(false)
 const trackingStep = ref(0)
 const checkoutNotice = ref('')
@@ -68,7 +68,7 @@ const submitOrder = async () => {
   <main class="min-h-screen bg-amber-50 px-4 py-8 sm:px-8 sm:py-12">
     <div class="mx-auto max-w-6xl">
       <RouterLink
-        to="/"
+        :to="{ name: 'home' }"
         class="inline-flex justify-start items-center gap-3 p-2 rounded-full border border-amber-200 bg-white px-5 text-base font-bold text-stone-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-amber-400 hover:bg-amber-50 hover:text-brand hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 sm:text-lg"
       >
         <ArrowLeft :size="20" aria-hidden="true" />
@@ -132,7 +132,7 @@ const submitOrder = async () => {
           Find something you love, then come back here to complete your order.
         </p>
         <RouterLink
-          to="/"
+          :to="{ name: 'home' }"
           class="mt-6 inline-flex min-h-11 items-center justify-center rounded-md bg-brand px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
         >
           Explore products
@@ -158,7 +158,7 @@ const submitOrder = async () => {
         </p>
 
         <RouterLink
-          to="/"
+          :to="{ name: 'home' }"
           class="mt-8 inline-flex min-h-11 items-center justify-center rounded-md bg-brand px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
         >
           Continue shopping

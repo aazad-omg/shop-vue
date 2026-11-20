@@ -10,9 +10,8 @@ type Profile = {
   email: string | null
   phone_number: string | null
   avatar_path: string | null
+  is_admin: boolean
 }
-
-type Role = 'admin'
 
 // keep session storage so that the app doesn't forgot that
 // the user is resetting their password if the page is refreshed
@@ -27,12 +26,12 @@ export const useAuthStore = defineStore('auth', () => {
   const isPasswordRecovery = ref(false)
   const isRequestingPasswordReset = ref(false)
   const isUploadingAvatar = ref(false)
-  const role = ref<Role | null>(null)
+  const isAdmin = ref(false)
   const user = ref<Profile | null>(null)
   const authUser = ref<User | null>(null)
   let isInitialized = false
 
-  const canManageProducts = () => role.value === 'admin'
+  const canManageProducts = () => isAdmin.value
 
   const requestPasswordReset = async (email: string, redirectTo: string) => {
     isRequestingPasswordReset.value = true
@@ -64,6 +63,7 @@ export const useAuthStore = defineStore('auth', () => {
       authUser.value = data.user
       user.value = null
       avatarUrl.value = null
+      isAdmin.value = false
       isAuth.value = true
       await fetchProfile()
       return true
@@ -148,10 +148,11 @@ export const useAuthStore = defineStore('auth', () => {
           },
           { onConflict: 'id' },
         )
-        .select('id, full_name, email, phone_number, avatar_path')
+        .select('id, full_name, email, phone_number, avatar_path, is_admin')
         .single()
       if (error) throw error
       user.value = data
+      isAdmin.value = data.is_admin === true
       avatarUrl.value = data.avatar_path ? await getAvatarUrl(data.avatar_path) : null
 
       return true
@@ -175,13 +176,14 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const { data, error: fetchError } = await supabase
         .from('profiles')
-        .select('id, full_name, email, phone_number, avatar_path')
+        .select('id, full_name, email, phone_number, avatar_path, is_admin')
         .eq('id', authUser.value.id)
         .maybeSingle()
 
       if (fetchError) throw fetchError
 
       user.value = data
+      isAdmin.value = data?.is_admin === true
       avatarUrl.value = data?.avatar_path ? await getAvatarUrl(data.avatar_path) : null
       return true
     } catch (fetchError: unknown) {
@@ -209,6 +211,7 @@ export const useAuthStore = defineStore('auth', () => {
         email: user.value?.email ?? null,
         phone_number: user.value?.phone_number ?? null,
         avatar_path: avatarPath,
+        is_admin: user.value?.is_admin ?? false,
       }
       avatarUrl.value = await getAvatarUrl(avatarPath)
       return true
@@ -225,6 +228,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     authUser.value = null
     avatarUrl.value = null
+    isAdmin.value = false
     isAuth.value = false
     error.value = null
   }
@@ -253,6 +257,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (!nextAuthUser || nextAuthUser.id !== authUser.value?.id) {
         user.value = null
         avatarUrl.value = null
+        isAdmin.value = false
       }
       authUser.value = nextAuthUser
       isAuth.value = session !== null
@@ -272,6 +277,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     authUser.value = data.session?.user ?? null
     user.value = null
+    isAdmin.value = false
     isAuth.value = data.session !== null
     isPasswordRecovery.value =
       data.session !== null && sessionStorage.getItem(Password_Recovery_Storage_Key) === 'true'
@@ -284,6 +290,7 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     authUser,
     avatarUrl,
+    canManageProducts,
     isAuth,
     isLoading,
     isUploadingAvatar,

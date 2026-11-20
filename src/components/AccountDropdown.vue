@@ -2,7 +2,7 @@
 import { LogOut } from '@lucide/vue'
 import { computed } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import { getInitials } from '@/helpers/getInitials'
+import { getInitials } from '@/helpers'
 import { useAuthStore, useCartStore, useUiStore } from '@/stores'
 import { toast } from 'vue-sonner'
 import {

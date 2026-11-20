@@ -70,7 +70,7 @@ onUnmounted(() => {
 })
 
 const loadMore = () => {
-  void loadMoreProducts()
+  loadMoreProducts()
 }
 
 const selectCategory = (category: string) => {

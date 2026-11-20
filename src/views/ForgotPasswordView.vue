@@ -39,7 +39,7 @@ const onSubmit = async () => {
   <div
     class="mx-auto my-10 flex w-full max-w-lg flex-col gap-5 rounded-2xl border border-amber-900/15 bg-white p-10 shadow-2xl shadow-amber-950/25 md:border"
   >
-    <RouterLink to="/" class="flex justify-center">
+    <RouterLink :to="{ name: 'home' }" class="flex justify-center">
       <ShopLogo />
     </RouterLink>
 
