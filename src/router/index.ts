@@ -56,6 +56,11 @@ const router = createRouter({
           component: () => import('@/views/AdminProductsView.vue'),
         },
         {
+          path: 'categories',
+          name: 'admin-categories',
+          component: () => import('@/views/AdminCategoriesView.vue'),
+        },
+        {
           path: 'products/new',
           name: 'admin-product-create',
           component: () => import('@/views/AdminProductFormView.vue'),

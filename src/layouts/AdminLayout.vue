@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { LayoutDashboard, Package } from '@lucide/vue'
+import { LayoutDashboard, Package, Tags } from '@lucide/vue'
 import { AdminNavbar } from '@/components'
 
 const navigation = [
   { label: 'Overview', name: 'admin-dashboard', icon: LayoutDashboard },
   { label: 'Products', name: 'admin-products', icon: Package },
+  { label: 'Categories', name: 'admin-categories', icon: Tags },
 ]
 </script>
 
@@ -13,7 +14,7 @@ const navigation = [
     <AdminNavbar />
 
     <div
-      class="mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row lg:gap-10 lg:px-8 lg:py-10"
+      class="mx-auto flex w-full max-w-360 flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row lg:gap-10 lg:px-8 lg:py-10"
     >
       <aside class="shrink-0 lg:w-56">
         <p class="mb-3 px-3 text-xs font-semibold uppercase tracking-[0.16em] text-stone-400">

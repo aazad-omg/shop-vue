@@ -2,7 +2,7 @@
 import { ArrowLeft } from '@lucide/vue'
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import AdminProductForm from '@/components/admin/AdminProductForm.vue'
+import { AdminProductForm } from '@/components'
 
 const route = useRoute()
 const mode = computed(() => (route.name === 'admin-product-edit' ? 'edit' : 'create'))
@@ -28,9 +28,5 @@ const mode = computed(() => (route.name === 'admin-product-edit' ? 'edit' : 'cre
     </header>
 
     <AdminProductForm :mode="mode" />
-
-    <p class="text-center text-xs text-stone-400">
-      Form preview only. Product changes are not saved yet.
-    </p>
   </section>
 </template>

@@ -1,15 +1,17 @@
-import { supabase } from '@/supabase'
+import {
+  fetchProductById as fetchProductByIdFromService,
+  fetchProducts as fetchProductsFromService,
+  fetchProductsByCategories as fetchProductsByCategoriesFromService,
+} from '@/services'
 import type { Product } from '@/types'
 import { onScopeDispose, ref, type MaybeRefOrGetter, toValue } from 'vue'
 
 // Handle composable parameters
 type ProductOptions = {
   searchTerm?: string
-  category?: string
+  categoryId?: string
   limit?: number
   excludeId?: number
-  //   use categoryId later if the project scales
-  // categoryId?: number
 }
 
 export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
@@ -44,33 +46,25 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
     }
 
     try {
-      let query = supabase.from('products').select('*', { count: 'exact' })
-      const searchTerm = refOptions.searchTerm?.trim()
-
-      if (searchTerm) {
-        query = query.ilike('name', `%${searchTerm}%`)
+      const request = {
+        searchTerm: refOptions.searchTerm,
+        excludeId: refOptions.excludeId,
+        from,
+        to,
+        signal: controller.signal,
       }
-      if (refOptions.category) {
-        query = query.contains('categories', [refOptions.category])
-      }
-      if (refOptions.excludeId !== undefined) {
-        query = query.neq('id', refOptions.excludeId)
-      }
-
-      const response = await query
-        .order('name', { ascending: true })
-        .order('id', { ascending: true })
-        .range(from, to)
-        .abortSignal(controller.signal)
-
-      if (response.error) throw response.error
-      if (response.count === null)
-        throw new Error('Could not determine the total number of products')
+      const response =
+        refOptions.categoryId !== undefined
+          ? await fetchProductsByCategoriesFromService({
+              ...request,
+              categoryId: refOptions.categoryId,
+            })
+          : await fetchProductsFromService(request)
 
       if (activeController === controller) {
-        const page = response.data ?? []
+        const page = response.products
         products.value = append ? [...products.value, ...page] : page
-        totalCount.value = response.count
+        totalCount.value = response.totalCount
         hasMore.value = page.length === pageSize
       }
     } catch (err) {
@@ -112,16 +106,9 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
     error.value = null
 
     try {
-      const response = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', id)
-        .abortSignal(controller.signal)
-        .maybeSingle()
+      const product = await fetchProductByIdFromService(id, controller.signal)
 
-      if (response.error) throw response.error
-
-      return activeController === controller ? response.data : null
+      return activeController === controller ? product : null
     } catch (err) {
       if (activeController === controller && !controller.signal.aborted) {
         console.error('Error fetching product:', err)

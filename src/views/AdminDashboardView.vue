@@ -12,7 +12,14 @@ import { RouterLink } from 'vue-router'
 import AdminMetricCard from '@/components/admin/AdminMetricCard.vue'
 import AdminProductTable from '@/components/admin/AdminProductTable.vue'
 import AdminSalesChart from '@/components/admin/AdminSalesChart.vue'
-import { ADMIN_PRODUCTS } from '@/data/adminProducts'
+import { useProducts } from '@/composables'
+import { onMounted } from 'vue'
+
+const { products, isLoading: productsLoading, error: productsError, fetchProducts } = useProducts({
+  limit: 5,
+})
+
+onMounted(() => fetchProducts())
 </script>
 
 <template>
@@ -155,10 +162,10 @@ import { ADMIN_PRODUCTS } from '@/data/adminProducts'
           <ArrowUpRight class="size-4" />
         </RouterLink>
       </div>
-      <AdminProductTable :products="ADMIN_PRODUCTS.slice(0, 5)" />
-      <div class="border-t border-stone-100 px-5 py-3 text-xs text-stone-400 sm:px-6">
-        Sample inventory for layout preview
-      </div>
+      <p v-if="productsError" role="alert" class="px-5 py-4 text-sm text-rose-700">
+        Could not load products: {{ productsError }}
+      </p>
+      <AdminProductTable v-else :products="products" :loading="productsLoading" />
     </section>
   </section>
 </template>
