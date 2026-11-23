@@ -1,4 +1,5 @@
 export { getAvatarUrl, uploadAvatar } from './profileImage'
+export { removeProductImage, uploadProductImage } from './productImage'
 export {
   createProduct,
   updateProduct,

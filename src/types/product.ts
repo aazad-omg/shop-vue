@@ -24,6 +24,7 @@ export type Product = {
 }
 
 export type CreateProductInput = {
+  image?: string
   name: string
   slug: string
   subtitle: string

@@ -4,7 +4,16 @@ import { computed, onMounted, ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { useCategories } from '@/composables'
 import { createCategory, deleteCategory } from '@/services'
-import { Spinner } from '../ui'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Spinner,
+} from '../ui'
 
 const {
   categories,
@@ -15,6 +24,8 @@ const {
 const categoryName = ref('')
 const isAddingCategory = ref(false)
 const removingCategoryId = ref<string | null>(null)
+const isRemoveDialogOpen = ref(false)
+const categoryToRemove = ref<{ id: string; name: string } | null>(null)
 const managedCategories = computed(() => categories.value.filter((category) => category.slug))
 
 const slugify = (value: string) =>
@@ -50,14 +61,22 @@ const addCategory = async () => {
   }
 }
 
-const removeCategory = async (id: string, name: string) => {
-  if (!window.confirm(`Remove "${name}"?`)) return
+const requestRemoveCategory = (id: string, name: string) => {
+  categoryToRemove.value = { id, name }
+  isRemoveDialogOpen.value = true
+}
 
-  removingCategoryId.value = id
+const confirmRemoveCategory = async () => {
+  const category = categoryToRemove.value
+  if (!category || removingCategoryId.value) return
+
+  removingCategoryId.value = category.id
   try {
-    await deleteCategory(id)
+    await deleteCategory(category.id)
     await fetchCategories()
     toast.success('Category removed')
+    isRemoveDialogOpen.value = false
+    categoryToRemove.value = null
   } catch (error) {
     toast.error(error instanceof Error ? error.message : 'Failed to remove category')
   } finally {
@@ -126,11 +145,43 @@ onMounted(() => fetchCategories())
           :disabled="removingCategoryId === category.id"
           :aria-label="`Remove ${category.name}`"
           class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-stone-400 transition hover:bg-rose-50 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
-          @click="removeCategory(category.id, category.name)"
+          @click="requestRemoveCategory(category.id, category.name)"
         >
           <Trash2 class="size-4" />
         </button>
       </li>
     </ul>
   </section>
+
+  <Dialog v-model:open="isRemoveDialogOpen">
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle class="text-brand-900">Remove category?</DialogTitle>
+        <DialogDescription>
+          Are you sure you want to remove
+          <span class="font-bold">"{{ categoryToRemove?.name }}"</span>? This action cannot be
+          undone.
+        </DialogDescription>
+      </DialogHeader>
+      <DialogFooter>
+        <DialogClose as-child>
+          <button
+            type="button"
+            class="rounded-xl border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+            :disabled="removingCategoryId !== null"
+          >
+            Cancel
+          </button>
+        </DialogClose>
+        <button
+          type="button"
+          class="rounded-xl bg-rose-700 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-800 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+          :disabled="removingCategoryId !== null || !categoryToRemove"
+          @click="confirmRemoveCategory"
+        >
+          {{ removingCategoryId ? 'Removing...' : 'Remove category' }}
+        </button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>
