@@ -27,6 +27,14 @@ const authStore = useAuthStore()
       <div
         class="col-start-2 row-start-1 flex shrink-0 items-center justify-self-end gap-1 sm:gap-2 md:col-start-3 md:gap-3 lg:gap-4"
       >
+        <RouterLink
+          v-if="authStore.isAdmin"
+          to="/admin"
+          class="text-xl font-semibold text-brand-900"
+        >
+          Admin
+        </RouterLink>
+
         <button
           type="button"
           aria-label="Open cart"

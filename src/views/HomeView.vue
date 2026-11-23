@@ -1,33 +1,26 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import { ProductCard, ProductCardSkeleton, Spinner } from '@/components'
 import type { Product } from '@/types'
 import { useCartStore } from '@/stores'
-import { useProducts } from '@/composables'
+import { useCategories, useProducts } from '@/composables'
 
 const cart = useCartStore()
 const route = useRoute()
 const router = useRouter()
 
-const categories = ref<string[]>([
-  'All goods',
-  'Kitchen',
-  'Home',
-  'Accessories',
-  'Audio & Tech',
-  'Travel',
-  'Outdoors',
-  'Stationery',
-  'Seasonal markdowns',
-])
-const selectedCategory = ref('All goods')
+const { categories, isLoaded: categoriesLoaded, fetchCategories } = useCategories()
+const selectedCategorySlug = ref('')
+const selectedCategoryId = computed(
+  () => categories.value.find(({ slug }) => slug === selectedCategorySlug.value)?.id,
+)
 const loadMoreTrigger = ref<HTMLElement | null>(null)
 const { products, isLoading, error, hasMore, fetchProducts, loadMoreProducts } = useProducts(
   () => ({
     limit: 20,
-    category: selectedCategory.value === 'All goods' ? undefined : selectedCategory.value,
+    categoryId: selectedCategoryId.value,
   }),
 )
 
@@ -38,14 +31,22 @@ let observer: IntersectionObserver | null = null
 watch(
   () => route.query.category,
   async (value) => {
-    const category = typeof value === 'string' ? value : ''
-    selectedCategory.value = category || 'All goods'
+    selectedCategorySlug.value = typeof value === 'string' ? value : ''
+    if (selectedCategorySlug.value && !categoriesLoaded.value) return
     await fetchProducts()
   },
   { immediate: true },
 )
 
+watch(categoriesLoaded, async (loaded) => {
+  if (loaded && selectedCategorySlug.value) {
+    await fetchProducts()
+  }
+})
+
 onMounted(() => {
+  fetchCategories()
+
   observer = new IntersectionObserver(
     (entries) => {
       if (entries[0]?.isIntersecting) {
@@ -73,11 +74,11 @@ const loadMore = () => {
   loadMoreProducts()
 }
 
-const selectCategory = (category: string) => {
+const selectCategory = (categorySlug: string) => {
   router.push({
     query: {
       ...route.query,
-      category: category === 'All goods' ? undefined : category,
+      category: categorySlug || undefined,
     },
   })
 }
@@ -93,25 +94,30 @@ const addCurrentProductToCart = (product: Product) => {
   <div class="min-h-screen w-full bg-amber-50">
     <!-- Category Navigation -->
     <nav
+      v-if="categoriesLoaded"
       aria-label="Product categories"
       class="overflow-x-auto border-b border-stone-200 lg:overflow-visible"
     >
       <ul
-        class="mx-auto flex w-max min-w-full list-none items-center gap-2 px-4 py-2 sm:px-6 lg:grid lg:w-full lg:max-w-7xl lg:grid-cols-9 lg:gap-x-4"
+        class="mx-auto flex w-max min-w-full list-none items-center gap-2 px-4 py-2 sm:px-6 lg:w-full lg:max-w-7xl lg:justify-center lg:gap-x-2"
       >
-        <li v-for="category in categories" :key="category" class="shrink-0 lg:shrink">
+        <li
+          v-for="category in categories"
+          :key="category.slug || category.name"
+          class="shrink-0 lg:min-w-0 lg:flex-1"
+        >
           <button
             type="button"
             class="h-full rounded-full px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:text-base lg:w-full lg:whitespace-normal lg:px-2 hover:cursor-pointer"
             :class="
-              selectedCategory === category
+              selectedCategorySlug === category.slug
                 ? 'bg-brand text-white shadow-sm'
                 : 'text-stone-600 hover:bg-stone-100 hover:text-brand'
             "
-            :aria-pressed="selectedCategory === category"
-            @click="selectCategory(category)"
+            :aria-pressed="selectedCategorySlug === category.slug"
+            @click="selectCategory(category.slug)"
           >
-            {{ category }}
+            {{ category.name }}
           </button>
         </li>
       </ul>

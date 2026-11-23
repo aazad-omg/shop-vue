@@ -292,6 +292,7 @@ export const useAuthStore = defineStore('auth', () => {
     avatarUrl,
     canManageProducts,
     isAuth,
+    isAdmin,
     isLoading,
     isUploadingAvatar,
     isChangingPassword,

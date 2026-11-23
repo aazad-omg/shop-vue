@@ -109,10 +109,11 @@ const onSubmit = async () => {
             placeholder="Enter your email"
             data-slot="input-group-control"
             :aria-invalid="v$.email.$error"
+            :aria-describedby="v$.email.$error ? 'email-error' : undefined"
           />
         </InputGroup>
         <!-- create an error component -->
-        <p class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
+        <p id="email-error" class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
           {{ v$.email.$error ? v$.email.$errors[0]?.$message : '' }}
         </p>
       </div>
@@ -133,6 +134,7 @@ const onSubmit = async () => {
             placeholder="Enter your password"
             data-slot="input-group-control"
             :aria-invalid="v$.password.$error"
+            :aria-describedby="v$.password.$error ? 'password-error' : undefined"
           />
           <InputGroupAddon align="inline-end">
             <button
@@ -146,7 +148,7 @@ const onSubmit = async () => {
             </button>
           </InputGroupAddon>
         </InputGroup>
-        <p class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
+        <p id="password-error" class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
           {{ v$.password.$error ? v$.password.$errors[0]?.$message : '' }}
         </p>
       </div>
