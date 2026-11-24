@@ -25,7 +25,7 @@ const navigation = [
             v-for="item in navigation"
             :key="item.name"
             :to="{ name: item.name }"
-            class="flex shrink-0 items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-950"
+            class="flex shrink-0 items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-brand-900 transition-colors hover:bg-stone-100 hover:text-stone-950"
             active-class="border-stone-200 bg-white text-stone-950 shadow-sm"
             exact-active-class="border-stone-200 bg-white text-stone-950 shadow-sm"
           >

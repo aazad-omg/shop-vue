@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { createProduct, updateProduct } from '@/services'
+import { createProduct, removeProductImage, updateProduct, uploadProductImage } from '@/services'
+import { generateSlug } from '@/helpers'
 import { useCategories, useProducts } from '@/composables'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import {
@@ -33,6 +34,11 @@ const route = useRoute()
 const router = useRouter()
 const isSubmitting = ref(false)
 const submitError = ref('')
+const imageInput = ref<HTMLInputElement | null>(null)
+const imageFile = ref<File | null>(null)
+const imagePreviewUrl = ref<string | null>(null)
+const imageError = ref('')
+const isDraggingImage = ref(false)
 const {
   categories: categoryOptions,
   isLoading: categoriesLoading,
@@ -48,6 +54,7 @@ const categories = computed(() =>
 )
 
 const form = reactive({
+  image: '',
   name: '',
   slug: '',
   subtitle: '',
@@ -58,6 +65,20 @@ const form = reactive({
   description: '',
 })
 
+const isSlugManuallyEdited = ref(false)
+
+watch(
+  () => form.name,
+  (name) => {
+    if (!isSlugManuallyEdited.value) form.slug = generateSlug(name)
+  },
+  { flush: 'sync' },
+)
+
+const markSlugAsManuallyEdited = () => {
+  isSlugManuallyEdited.value = true
+}
+
 onMounted(async () => {
   const [, product] = await Promise.all([
     fetchCategories(),
@@ -67,6 +88,7 @@ onMounted(async () => {
   if (!product) return
 
   form.name = product.name
+  form.image = product.image
   form.slug = product.slug
   form.subtitle = product.subtitle
   form.price = product.price
@@ -78,6 +100,43 @@ onMounted(async () => {
       .filter((category) => category.name === name)
       .map((category) => category.id ?? ''),
   )
+})
+
+const previewImage = computed(() => imagePreviewUrl.value || form.image)
+
+const setImageFile = (file?: File) => {
+  imageError.value = ''
+  if (!file) return
+
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    imageError.value = 'Please upload a JPG, PNG, or WebP image.'
+    return
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    imageError.value = 'Image must be smaller than 2 MB.'
+    return
+  }
+
+  if (imagePreviewUrl.value) URL.revokeObjectURL(imagePreviewUrl.value)
+  imageFile.value = file
+  imagePreviewUrl.value = URL.createObjectURL(file)
+}
+
+const handleImageSelection = (event: Event) => {
+  const input = event.currentTarget
+  if (!(input instanceof HTMLInputElement)) return
+
+  setImageFile(input.files?.[0])
+  input.value = ''
+}
+
+const handleImageDrop = (event: DragEvent) => {
+  isDraggingImage.value = false
+  setImageFile(event.dataTransfer?.files[0])
+}
+
+onUnmounted(() => {
+  if (imagePreviewUrl.value) URL.revokeObjectURL(imagePreviewUrl.value)
 })
 
 const publishingStatus = computed({
@@ -100,14 +159,26 @@ const rules = {
 const v$ = useVuelidate(rules, form)
 
 const handleSubmit = async () => {
+  if (imageError.value) return
+
   const isValid = await v$.value.$validate()
   if (!isValid || form.price === null || form.stock === null) return
 
   isSubmitting.value = true
   submitError.value = ''
 
+  let uploadedImagePath: string | null = null
+  let productSaved = false
   try {
+    let image = form.image
+    if (imageFile.value) {
+      const uploadedImage = await uploadProductImage(imageFile.value)
+      uploadedImagePath = uploadedImage.path
+      image = uploadedImage.url
+    }
+
     const productInput = {
+      ...(imageFile.value ? { image } : {}),
       name: form.name.trim(),
       slug: form.slug.trim(),
       subtitle: form.subtitle.trim(),
@@ -125,8 +196,16 @@ const handleSubmit = async () => {
       await createProduct(productInput)
       toast.success('Product added successfully')
     }
+    productSaved = true
     await router.push({ name: 'admin-products' })
   } catch (error) {
+    if (uploadedImagePath && !productSaved && props.mode === 'create') {
+      try {
+        await removeProductImage(uploadedImagePath)
+      } catch (cleanupError) {
+        console.error('Could not remove uploaded product image:', cleanupError)
+      }
+    }
     submitError.value =
       error instanceof Error
         ? error.message
@@ -154,6 +233,55 @@ const handleSubmit = async () => {
       </div>
 
       <div class="space-y-6">
+        <div class="">
+          <span class="mb-2 block text-sm font-medium text-stone-700">Product image</span>
+          <input
+            ref="imageInput"
+            class="sr-only"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            aria-label="Choose a product image"
+            @change="handleImageSelection"
+          />
+          <div
+            class="flex min-h-80 items-center justify-center rounded-xl border-2 border-dashed p-8 transition-colors"
+            :class="
+              isDraggingImage
+                ? 'border-stone-500 bg-stone-50'
+                : 'border-stone-200 hover:border-stone-400'
+            "
+            @dragover.prevent="isDraggingImage = true"
+            @dragleave.prevent="isDraggingImage = false"
+            @drop.prevent="handleImageDrop"
+          >
+            <div class="flex flex-col items-center gap-3 text-center sm:flex-row sm:text-left">
+              <img
+                v-if="previewImage"
+                :src="previewImage"
+                alt="Product image preview"
+                class="size-24 rounded-lg border border-stone-200 object-cover"
+              />
+              <div v-else class="flex size-24 items-center justify-center rounded-lg bg-stone-100">
+                <span class="text-xs text-stone-500">No image</span>
+              </div>
+              <div>
+                <p class="text-sm text-stone-600">Drag and drop an image here, or</p>
+                <button
+                  type="button"
+                  class="mt-1 text-sm font-semibold text-stone-900 underline underline-offset-2 hover:cursor-pointer"
+                  @click="imageInput?.click()"
+                >
+                  Choose file
+                </button>
+                <p class="mt-1 text-xs text-stone-500">JPG, PNG, or WebP. Maximum size: 2 MB.</p>
+              </div>
+            </div>
+          </div>
+          <p v-if="imageError" role="alert" class="mt-1.5 text-sm font-medium text-red-700">
+            {{ imageError }}
+          </p>
+        </div>
+
         <label class="block">
           <span class="mb-2 block text-sm font-medium text-stone-700">
             Product name <span class="text-red-700" aria-hidden="true">*</span>
@@ -179,6 +307,7 @@ const handleSubmit = async () => {
               placeholder="apple-watch-se"
               :aria-invalid="v$.slug.$error"
               class="h-11 w-full rounded-xl border border-stone-200 bg-white px-3.5 text-sm text-stone-800 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-100"
+              @input="markSlugAsManuallyEdited"
             />
             <p v-if="v$.slug.$error" role="alert" class="mt-1.5 text-sm font-medium text-red-700">
               {{ v$.slug.$errors[0]?.$message }}

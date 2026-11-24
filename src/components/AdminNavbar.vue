@@ -15,7 +15,7 @@ import ShopLogo from './ShopLogo.vue'
       <RouterLink to="/admin" class="flex min-w-0 items-center gap-2 font-extrabold text-brand">
         <ShopLogo />
         <span
-          class="ml-1 hidden border-l border-stone-300 pl-3 text-sm font-semibold text-stone-600 sm:inline"
+          class="ml-1 hidden border-l border-stone-300 pl-3 text-xl font-semibold text-brand-900 sm:inline"
         >
           Admin
         </span>
@@ -24,7 +24,7 @@ import ShopLogo from './ShopLogo.vue'
       <div class="flex shrink-0 items-center gap-2 sm:gap-4">
         <RouterLink
           :to="{ name: 'home' }"
-          class="rounded-md px-3 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 hover:text-brand"
+          class="rounded-md px-3 py-2 text-xl font-semibold text-brand-900 transition-colors hover:bg-stone-100 hover:text-brand"
         >
           Back to shop
         </RouterLink>

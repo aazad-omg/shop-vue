@@ -48,14 +48,14 @@ watch(
     <header class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div>
         <p class="text-sm font-medium text-stone-500">Catalog</p>
-        <h1 class="mt-1 text-2xl font-semibold tracking-tight text-stone-950 sm:text-3xl">
+        <h1 class="mt-1 text-2xl font-semibold tracking-tight text-brand-900 sm:text-3xl">
           Products
         </h1>
         <p class="mt-2 text-sm text-stone-500">Manage and organize your store’s product catalog.</p>
       </div>
       <RouterLink
         :to="{ name: 'admin-product-create' }"
-        class="inline-flex items-center justify-center gap-2 rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-700"
+        class="flex items-center justify-center gap-2 rounded-xl bg-brand-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-700"
       >
         <Plus class="size-4" />
         Add product
