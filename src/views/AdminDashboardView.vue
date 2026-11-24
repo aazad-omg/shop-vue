@@ -8,16 +8,60 @@ import {
   TrendingUp,
   NepaliRupee,
 } from '@lucide/vue'
+import { onClickOutside } from '@vueuse/core'
+import { getLocalTimeZone, today } from '@internationalized/date'
+import type { DateRange } from 'reka-ui'
 import { RouterLink } from 'vue-router'
+import { computed, onMounted, ref, shallowRef } from 'vue'
 import AdminMetricCard from '@/components/admin/AdminMetricCard.vue'
 import AdminProductTable from '@/components/admin/AdminProductTable.vue'
 import AdminSalesChart from '@/components/admin/AdminSalesChart.vue'
+import { RangeCalendar } from '@/components/ui/range-calendar'
 import { useProducts } from '@/composables'
-import { onMounted } from 'vue'
 
-const { products, isLoading: productsLoading, error: productsError, fetchProducts } = useProducts({
+const {
+  products,
+  isLoading: productsLoading,
+  error: productsError,
+  fetchProducts,
+} = useProducts({
   limit: 5,
 })
+
+const isCalendarOpen = ref(false)
+const calendarPicker = ref<HTMLElement | null>(null)
+const localToday = today(getLocalTimeZone())
+const defaultRange: DateRange = {
+  start: localToday.subtract({ days: 29 }),
+  end: localToday,
+}
+const dateRange = shallowRef<DateRange>({ ...defaultRange })
+const dateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' })
+const dateLabel = computed(() => {
+  const { start, end } = dateRange.value
+  if (!start || !end) {
+    return start
+      ? `${dateFormatter.format(start.toDate(getLocalTimeZone()))} – Select end date`
+      : 'Select date range'
+  }
+  if (
+    start.toString() === defaultRange.start?.toString() &&
+    end.toString() === defaultRange.end?.toString()
+  ) {
+    return 'Last 30 days'
+  }
+  return `${dateFormatter.format(start.toDate(getLocalTimeZone()))} – ${dateFormatter.format(end.toDate(getLocalTimeZone()))}`
+})
+
+const closeCalendar = () => {
+  isCalendarOpen.value = false
+}
+
+const handleRangeChange = (range: DateRange) => {
+  if (range.start && range.end) closeCalendar()
+}
+
+onClickOutside(calendarPicker, closeCalendar)
 
 onMounted(() => fetchProducts())
 </script>
@@ -31,11 +75,33 @@ onMounted(() => fetchProducts())
         </h1>
         <p class="mt-2 text-sm text-stone-500">A visualization of your store’s performance.</p>
       </div>
-      <div
-        class="inline-flex w-fit items-center gap-2 rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm font-medium text-stone-600 shadow-sm"
-      >
-        <CalendarDays class="size-4 text-stone-400" />
-        Last 30 days
+      <div ref="calendarPicker" class="relative">
+        <button
+          type="button"
+          class="flex justify-center items-center gap-2 rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm font-medium text-stone-600 shadow-sm transition hover:bg-stone-50 hover:cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400"
+          aria-haspopup="dialog"
+          :aria-expanded="isCalendarOpen"
+          @click="isCalendarOpen = !isCalendarOpen"
+        >
+          <CalendarDays class="size-4 text-stone-400" />
+          {{ dateLabel }}
+        </button>
+        <div
+          v-if="isCalendarOpen"
+          class="absolute right-0 top-full z-50 mt-2 w-160 max-w-[calc(100vw-2rem)] rounded-xl border border-stone-200 bg-white shadow-lg"
+          role="dialog"
+          aria-label="Select dashboard date range"
+          @keydown.esc="closeCalendar"
+        >
+          <RangeCalendar
+            v-model="dateRange"
+            class="rounded-md border shadow-sm"
+            :number-of-months="2"
+            :max-value="localToday"
+            disable-days-outside-current-view
+            @update:model-value="handleRangeChange"
+          />
+        </div>
       </div>
     </header>
 
