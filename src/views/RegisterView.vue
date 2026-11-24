@@ -132,15 +132,17 @@ const onSubmit = async () => {
             :aria-invalid="v$.password.$error"
           />
           <InputGroupAddon align="inline-end">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-xs"
               :aria-label="showPassword ? 'Hide password' : 'Show password'"
               :aria-pressed="showPassword"
               @click="showPassword = !showPassword"
             >
               <Eye v-if="!showPassword" />
               <EyeOff v-else />
-            </button>
+            </Button>
           </InputGroupAddon>
         </InputGroup>
         <PasswordStrengthIndicator :password="registrationForm.password" />
@@ -167,15 +169,17 @@ const onSubmit = async () => {
             :aria-invalid="v$.confirmPassword.$error"
           />
           <InputGroupAddon align="inline-end">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-xs"
               :aria-label="showConfirmPassword ? 'Hide password' : 'Show password'"
               :aria-pressed="showConfirmPassword"
               @click="showConfirmPassword = !showConfirmPassword"
             >
               <Eye v-if="!showConfirmPassword" />
               <EyeOff v-else />
-            </button>
+            </Button>
           </InputGroupAddon>
         </InputGroup>
         <p class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
@@ -187,7 +191,7 @@ const onSubmit = async () => {
         <Button
           type="submit"
           :disabled="isLoading"
-          class="w-full py-5 transition-transform active:scale-[0.85] hover:cursor-pointer bg-brand-900"
+          class="w-full py-5 transition-transform active:scale-[0.85] bg-brand-900"
         >
           <Spinner v-if="isLoading" class="size-4" />
           {{ isLoading ? 'Registering…' : 'Register' }}

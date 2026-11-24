@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
+import { Button } from './ui'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -80,14 +81,15 @@ const handleLogout = async () => {
       </DropdownMenuItem>
 
       <DropdownMenuItem class="rounded-md p-0 focus:bg-red-50 focus:text-red-700">
-        <button
+        <Button
           type="button"
-          class="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-lg font-medium text-red-600 transition-colors hover:cursor-pointer hover:text-red-700"
+          variant="ghost"
+          class="w-full justify-between rounded-md px-3 py-2 text-left text-lg text-red-600 hover:text-red-700"
           @click="handleLogout"
         >
           Log out
           <LogOut :size="16" aria-hidden="true" />
-        </button>
+        </Button>
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>

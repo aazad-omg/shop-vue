@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import useVuelidate from '@vuelidate/core'
-import { Card } from '@/components'
+import { Button, Card } from '@/components'
 import { handleImageFallback } from '@/helpers'
 import { useCartStore, useUiStore } from '@/stores'
 import { Progress } from '@/components'
@@ -247,12 +247,12 @@ const submitOrder = async () => {
                 />
               </label>
             </div>
-            <button
+            <Button
               type="submit"
-              class="mt-7 min-h-12 w-full rounded-lg bg-brand px-5 text-sm font-bold tracking-wide text-white shadow-sm transition duration-200 hover:bg-amber-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+              class="mt-7 min-h-12 w-full rounded-lg bg-brand px-5 tracking-wide hover:bg-amber-800"
             >
               Continue with order
-            </button>
+            </Button>
             <p
               v-if="checkoutNotice"
               role="status"
@@ -298,14 +298,16 @@ const submitOrder = async () => {
                     {{ (item.product.price * item.quantity).toFixed(2) }}
                   </p>
                 </div>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   :aria-label="`Remove ${item.product.name} from order`"
-                  class="inline-flex size-9 shrink-0 self-center items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-red-50 hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                  class="size-9 shrink-0 self-center text-stone-400 hover:bg-red-50 hover:text-red-700"
                   @click="cart.removeFromCart(item.product.id)"
                 >
                   <Trash2 class="size-4" aria-hidden="true" />
-                </button>
+                </Button>
               </li>
             </ul>
 

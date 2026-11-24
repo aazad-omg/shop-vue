@@ -2,12 +2,8 @@
 import { computed, watch } from 'vue'
 import { Pencil } from '@lucide/vue'
 import { useImageUpload } from '@/composables'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui'
+import { Button } from '@/components'
 
 const props = defineProps<{
   src: string | null
@@ -36,10 +32,7 @@ const handleFileSelected = async (event: Event) => {
   try {
     if (await onFileSelected(event)) emit('upload-success')
   } catch (error: unknown) {
-    emit(
-      'upload-error',
-      error instanceof Error ? error.message : 'Profile picture upload failed',
-    )
+    emit('upload-error', error instanceof Error ? error.message : 'Profile picture upload failed')
   }
 }
 </script>
@@ -60,9 +53,10 @@ const handleFileSelected = async (event: Event) => {
               @change="handleFileSelected"
             />
 
-            <button
+            <Button
               type="button"
-              class="relative flex size-full items-center justify-center overflow-hidden rounded-full bg-brand text-xl font-bold text-white transition-transform duration-150 hover:cursor-pointer group-hover:scale-[1.2]"
+              variant="ghost"
+              class="relative size-full overflow-hidden rounded-full bg-brand p-0 text-xl text-white transition-transform duration-150 group-hover:scale-[1.2] hover:bg-brand"
               :disabled="isUploading"
               @click="inputRef?.click()"
             >
@@ -74,17 +68,18 @@ const handleFileSelected = async (event: Event) => {
                 @error="imageFailed = true"
               />
               <span v-else aria-hidden="true">{{ fallback }}</span>
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
-              class="absolute bottom-0 right-0 flex size-5 items-center justify-center rounded-full border-2 border-white bg-brand text-white shadow-sm transition-colors hover:cursor-pointer hover:bg-brand/80"
+              size="icon-xs"
+              class="absolute bottom-0 right-0 size-5 rounded-full border-2 border-white bg-brand p-0 text-white shadow-sm hover:bg-brand/80"
               :disabled="isUploading"
               aria-label="Choose a profile picture"
               @click="inputRef?.click()"
             >
               <Pencil class="size-3.5" />
-            </button>
+            </Button>
           </div>
         </TooltipTrigger>
         <TooltipContent>

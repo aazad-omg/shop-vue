@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useDebounceFn, useMediaQuery } from '@vueuse/core'
 import {
+  Button,
   Combobox,
   ComboboxAnchor,
   ComboboxEmpty,
@@ -100,17 +101,19 @@ onUnmounted(() => {
           :placeholder="isAboveMd ? 'Search products... (Ctrl+K / ⌘+K)' : 'Search products...'"
           class="h-10 min-w-0 flex-1 border-0 px-3"
         />
-        <button
+        <Button
           v-if="searchTerm"
           type="button"
+          variant="ghost"
+          size="icon-sm"
           aria-label="Clear search"
           title="Clear search"
-          class="mr-2 inline-flex size-8 shrink-0 items-center justify-center rounded-sm text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          class="mr-2 size-8 shrink-0 rounded-sm text-stone-500 hover:bg-stone-100 hover:text-stone-800"
           @mousedown.prevent
           @click.stop="clearSearch"
         >
           <XIcon class="size-4" />
-        </button>
+        </Button>
       </ComboboxAnchor>
 
       <ComboboxList class="max-h-64 w-(--reka-combobox-trigger-width) z-60">

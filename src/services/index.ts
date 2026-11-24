@@ -1,5 +1,9 @@
-export { getAvatarUrl, uploadAvatar } from './profileImage'
-export { removeProductImage, uploadProductImage } from './productImage'
+export {
+  getPublicImageUrl,
+  getSignedImageUrl,
+  removeImage,
+  uploadImage,
+} from './imageStorage'
 export {
   createProduct,
   updateProduct,

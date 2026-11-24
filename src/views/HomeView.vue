@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
-import { ProductCard, ProductCardSkeleton, Spinner } from '@/components'
+import { Button, ProductCard, ProductCardSkeleton, Spinner } from '@/components'
 import type { Product } from '@/types'
 import { useCartStore } from '@/stores'
 import { useCategories, useProducts } from '@/composables'
@@ -106,9 +106,10 @@ const addCurrentProductToCart = (product: Product) => {
           :key="category.slug || category.name"
           class="shrink-0 lg:min-w-0 lg:flex-1"
         >
-          <button
+          <Button
             type="button"
-            class="h-full rounded-full px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:text-base lg:w-full lg:whitespace-normal lg:px-2 hover:cursor-pointer"
+            variant="ghost"
+            class="h-full rounded-full px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:text-base lg:w-full lg:whitespace-normal lg:px-2"
             :class="
               selectedCategorySlug === category.slug
                 ? 'bg-brand text-white shadow-sm'
@@ -118,7 +119,7 @@ const addCurrentProductToCart = (product: Product) => {
             @click="selectCategory(category.slug)"
           >
             {{ category.name }}
-          </button>
+          </Button>
         </li>
       </ul>
     </nav>

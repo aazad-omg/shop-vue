@@ -3,6 +3,7 @@ import { ShoppingCart } from '@lucide/vue'
 import { RouterLink } from 'vue-router'
 import { useAuthStore, useCartStore } from '@/stores'
 import { CartDrawer } from '@/components/cart'
+import { Button } from '@/components'
 import ShopLogo from './ShopLogo.vue'
 import AccountDropdown from './AccountDropdown.vue'
 import ProductSearch from './ProductSearch.vue'
@@ -35,10 +36,12 @@ const authStore = useAuthStore()
           Admin
         </RouterLink>
 
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           aria-label="Open cart"
-          class="relative inline-flex items-center justify-center p-2 hover:cursor-pointer"
+          class="relative size-auto p-2"
           @click="cart.openDrawer"
         >
           <ShoppingCart :size="30" color="#2a3a5e" :stroke-width="2.5" />
@@ -50,7 +53,7 @@ const authStore = useAuthStore()
           >
             {{ cart.itemCount }}
           </span>
-        </button>
+        </Button>
 
         <RouterLink
           v-if="!authStore.isAuth"

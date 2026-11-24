@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/t
 import { NepaliRupee } from '@lucide/vue'
 import { handleImageFallback } from '@/helpers'
 import { useMediaQuery } from '@vueuse/core'
+import { Button } from './ui'
 
 type Props = {
   product: Product
@@ -38,14 +39,14 @@ const isAboveMd = useMediaQuery('(min-width: 48rem)')
         class="h-72 w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
         @error="handleImageError"
       />
-      <button
+      <Button
         type="button"
         aria-label="Add to cart"
-        class="visible absolute bottom-3 right-3 flex items-center justify-center rounded-md bg-brand px-3 py-1 text-xl font-medium text-white opacity-100 shadow-md transition-all hover:bg-amber-800 hover:cursor-pointer md:invisible md:opacity-0 md:group-hover:visible md:group-hover:opacity-100 md:focus-visible:visible md:focus-visible:opacity-100"
+        class="visible absolute bottom-3 right-3 h-auto rounded-md bg-brand px-3 py-1 text-white opacity-100 shadow-md transition-all hover:bg-amber-800 md:invisible md:opacity-0 md:group-hover:visible md:group-hover:opacity-100 md:focus-visible:visible md:focus-visible:opacity-100"
         @click.stop.prevent="props.addToCart"
       >
         <p class="text-sm font-semibold">+ Add</p>
-      </button>
+      </Button>
     </div>
 
     <CardHeader class="gap-1 px-4 pt-4 pb-0">

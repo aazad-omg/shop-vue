@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ChevronDown, ChevronUp } from '@lucide/vue'
-import { TableHead } from '@/components'
+import { Button, TableHead } from '@/components'
 
 const props = withDefaults(
   defineProps<{
@@ -31,16 +31,18 @@ const emit = defineEmits<{
           : 'none'
       : undefined"
   >
-    <button
+    <Button
       v-if="props.sortable"
       type="button"
-      class="inline-flex items-center gap-2 font-semibold uppercase tracking-[0.12em] text-brand-700"
+      variant="ghost"
+      size="xs"
+      class="items-center gap-2 px-0 font-semibold uppercase tracking-[0.12em] text-brand-700 hover:bg-transparent"
       @click="emit('sort')"
     >
       <slot>{{ props.label }}</slot>
       <ChevronUp v-if="props.sortDirection === 'asc'" class="size-3.5" />
       <ChevronDown v-else-if="props.sortDirection === 'desc'" class="size-3.5" />
-    </button>
+    </Button>
     <span v-else>
       <slot>{{ props.label }}</slot>
     </span>

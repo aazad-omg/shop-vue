@@ -13,6 +13,7 @@ import { Pencil as EditIcon, Ellipsis } from '@lucide/vue'
 import { computed } from 'vue'
 import {
   Badge,
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -185,13 +186,15 @@ function togglePriceSort() {
 
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
-                <button
+                <Button
                   type="button"
-                  class="inline-flex size-8 items-center justify-center hover:cursor-pointer rounded-lg text-stone-400 transition-colors hover:bg-white hover:text-stone-800"
+                  variant="ghost"
+                  size="icon"
+                  class="size-8 rounded-lg text-stone-400 hover:bg-white hover:text-stone-800"
                   :aria-label="`More actions for ${row.original.name}`"
                 >
                   <Ellipsis :size="20" color="#2a3a5e" :stroke-width="1.75" />
-                </button>
+                </Button>
               </DropdownMenuTrigger>
 
               <DropdownMenuContent

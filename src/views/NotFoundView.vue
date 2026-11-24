@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { Button } from '@/components'
 
 const router = useRouter()
 </script>
@@ -10,11 +11,11 @@ const router = useRouter()
 
     <p class="text-gray-600">Sorry, the page you're looking for doesn't exist.</p>
 
-    <button
-      class="rounded bg-blue-600 px-4 py-2 text-white hover:cursor-pointer"
+    <Button
+      class="rounded bg-blue-600 px-4 py-2 text-white"
       @click="router.push('/')"
     >
       Back to Home
-    </button>
+    </Button>
   </main>
 </template>
