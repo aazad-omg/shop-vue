@@ -3,6 +3,7 @@ import { NepaliRupee, Minus, Plus, Trash2, XIcon } from '@lucide/vue'
 import { useCartStore } from '@/stores'
 import { RouterLink } from 'vue-router'
 import {
+  Button,
   Drawer,
   DrawerClose,
   DrawerContent,
@@ -48,13 +49,15 @@ const handleInteractOutside = (event: Event) => {
           Review items in your cart, update quantities, or continue to checkout.
         </DrawerDescription>
         <DrawerClose as-child>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             aria-label="Close cart"
-            class="size-9 items-center justify-center rounded-md text-stone-600 transition-colors hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            class="size-9 rounded-md text-stone-600 hover:bg-stone-100"
           >
             <XIcon class="size-5" />
-          </button>
+          </Button>
         </DrawerClose>
       </DrawerHeader>
 
@@ -89,37 +92,43 @@ const handleInteractOutside = (event: Event) => {
                   {{ item.product.subtitle }}
                 </p>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-sm"
                 :aria-label="`Remove ${item.product.name} from cart`"
-                class="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-stone-500 transition-colors hover:bg-red-50 hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                class="size-8 shrink-0 rounded-md text-stone-500 hover:bg-red-50 hover:text-red-700"
                 @click="cart.removeFromCart(item.product.id)"
               >
                 <Trash2 class="size-4" />
-              </button>
+              </Button>
             </div>
             <div class="mt-3 flex items-center justify-between">
               <div class="inline-flex h-8 items-center rounded-md border border-stone-300">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon-sm"
                   :aria-label="`Decrease ${item.product.name} quantity`"
                   :disabled="item.quantity <= 1"
                   class="inline-flex size-8 items-center justify-center text-stone-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:text-stone-300"
                   @click="cart.updateQuantity(item.product.id, item.quantity - 1)"
                 >
                   <Minus class="size-3.5" />
-                </button>
+                </Button>
                 <span class="min-w-8 text-center text-sm font-medium" aria-live="polite">
                   {{ item.quantity }}
                 </span>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon-sm"
                   :aria-label="`Increase ${item.product.name} quantity`"
                   class="inline-flex size-8 items-center justify-center text-stone-700 hover:bg-stone-100"
                   @click="cart.updateQuantity(item.product.id, item.quantity + 1)"
                 >
                   <Plus class="size-3.5" />
-                </button>
+                </Button>
               </div>
               <p class="flex items-center font-semibold text-stone-900">
                 <NepaliRupee :size="15" :stroke-width="2.5" />
@@ -145,13 +154,14 @@ const handleInteractOutside = (event: Event) => {
           @click="cart.closeDrawer"
           >Proceed to checkout
         </RouterLink>
-        <button
+        <Button
           type="button"
-          class="mt-3 w-full py-1 text-sm font-medium text-stone-600 hover:text-stone-900"
+          variant="ghost"
+          class="mt-3 w-full py-1 text-stone-600 hover:text-stone-900"
           @click="cart.closeDrawer"
         >
           Continue shopping
-        </button>
+        </Button>
       </DrawerFooter>
     </DrawerContent>
   </Drawer>

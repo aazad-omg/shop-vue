@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ProductCard, ProductCardSkeleton, ProductImageZoom } from '@/components'
+import { Button, ProductCard, ProductCardSkeleton, ProductImageZoom } from '@/components'
 import { Card } from '@/components/'
 import { useCartStore } from '@/stores'
 import { useProducts } from '@/composables'
@@ -89,41 +89,43 @@ const addCurrentProductToCart = () => {
                   class="flex h-12 items-center rounded-md border border-stone-300 bg-white"
                   aria-label="Quantity"
                 >
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     aria-label="Decrease quantity"
-                    class="h-full w-11 rounded-l-md text-lg font-semibold text-stone-700 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand hover:cursor-pointer disabled:cursor-not-allowed disabled:text-stone-300"
+                    class="h-full w-11 rounded-l-md rounded-r-none text-lg text-stone-700 hover:bg-stone-100 focus-visible:ring-inset disabled:text-stone-300"
                     :disabled="quantity <= 1"
                     @click="quantity--"
                   >
                     -
-                  </button>
+                  </Button>
                   <output class="min-w-10 text-center text-sm font-semibold text-stone-900">
                     {{ quantity }}
                   </output>
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     aria-label="Increase quantity"
-                    class="h-full w-11 rounded-r-md text-lg font-semibold text-stone-700 hover:bg-stone-100 hover:cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
+                    class="h-full w-11 rounded-r-md rounded-l-none text-lg text-stone-700 hover:bg-stone-100 focus-visible:ring-inset"
                     @click="quantity++"
                   >
                     +
-                  </button>
+                  </Button>
                 </div>
-                <button
+                <Button
                   type="button"
-                  class="h-12 rounded-md bg-brand px-6 text-sm font-semibold text-white transition-colors hover:bg-amber-800 hover:cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+                  class="h-12 bg-brand px-6 hover:bg-amber-800"
                   @click="addCurrentProductToCart"
                 >
                   Add to cart
-                </button>
+                </Button>
               </div>
-              <button
+              <Button
                 type="button"
-                class="h-14 w-full rounded-md bg-amber-500 px-6 text-base font-bold text-stone-950 transition-colors hover:bg-amber-600 hover:cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2"
+                class="h-14 w-full bg-amber-500 px-6 text-base text-stone-950 hover:bg-amber-600"
               >
                 Buy now
-              </button>
+              </Button>
             </Card>
             <section class="mt-8 max-w-prose border-t border-stone-200 pt-6">
               <h2 class="text-lg font-bold text-stone-900">About this item</h2>

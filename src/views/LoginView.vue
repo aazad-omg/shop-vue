@@ -137,15 +137,17 @@ const onSubmit = async () => {
             :aria-describedby="v$.password.$error ? 'password-error' : undefined"
           />
           <InputGroupAddon align="inline-end">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-xs"
               :aria-label="showPassword ? 'Hide password' : 'Show password'"
               :aria-pressed="showPassword"
               @click="showPassword = !showPassword"
             >
               <Eye v-if="!showPassword" />
               <EyeOff v-else />
-            </button>
+            </Button>
           </InputGroupAddon>
         </InputGroup>
         <p id="password-error" class="mt-1.5 min-h-5 text-sm font-medium text-destructive" role="alert">
@@ -179,7 +181,7 @@ const onSubmit = async () => {
         <Button
           type="submit"
           :disabled="isLoading"
-          class="w-full py-5 transition-transform active:scale-[0.85] hover:cursor-pointer bg-brand-900"
+          class="w-full py-5 transition-transform active:scale-[0.85] bg-brand-900"
         >
           <Spinner v-if="isLoading" class="size-4" />
           {{ isLoading ? 'Logging in…' : 'Login' }}

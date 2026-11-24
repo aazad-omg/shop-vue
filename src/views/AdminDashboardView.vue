@@ -13,12 +13,15 @@ import { getLocalTimeZone, today } from '@internationalized/date'
 import type { DateRange } from 'reka-ui'
 import { RouterLink } from 'vue-router'
 import { computed, onMounted, ref, shallowRef } from 'vue'
-import AdminMetricCard from '@/components/admin/AdminMetricCard.vue'
-import AdminProductTable from '@/components/admin/AdminProductTable.vue'
-import AdminSalesChart from '@/components/admin/AdminSalesChart.vue'
-import { RangeCalendar } from '@/components/ui/range-calendar'
-import { useProducts } from '@/composables'
+import {
+  AdminMetricCard,
+  AdminProductTable,
+  AdminSalesChart,
+  Button,
+  RangeCalendar,
+} from '@/components'
 
+import { useProducts } from '@/composables'
 const {
   products,
   isLoading: productsLoading,
@@ -76,16 +79,17 @@ onMounted(() => fetchProducts())
         <p class="mt-2 text-sm text-stone-500">A visualization of your store’s performance.</p>
       </div>
       <div ref="calendarPicker" class="relative">
-        <button
+        <Button
           type="button"
-          class="flex justify-center items-center gap-2 rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm font-medium text-stone-600 shadow-sm transition hover:bg-stone-50 hover:cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400"
+          variant="outline"
+          class="justify-center gap-2 rounded-xl border-stone-200 bg-white px-3.5 py-2.5 text-stone-600 shadow-sm hover:bg-stone-50"
           aria-haspopup="dialog"
           :aria-expanded="isCalendarOpen"
           @click="isCalendarOpen = !isCalendarOpen"
         >
           <CalendarDays class="size-4 text-stone-400" />
           {{ dateLabel }}
-        </button>
+        </Button>
         <div
           v-if="isCalendarOpen"
           class="absolute right-0 top-full z-50 mt-2 w-160 max-w-[calc(100vw-2rem)] rounded-xl border border-stone-200 bg-white shadow-lg"

@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
   Spinner,
+  Button,
 } from '../ui'
 
 const {
@@ -103,14 +104,14 @@ onMounted(() => fetchCategories())
           placeholder="Category name"
           class="h-10 min-w-0 flex-1 rounded-xl border border-stone-200 px-3 text-sm text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-400 focus:ring-4 focus:ring-stone-100 sm:w-52"
         />
-        <button
+        <Button
           type="submit"
           :disabled="isAddingCategory"
-          class="flex h-10 items-center justify-center gap-2 rounded-xl bg-brand-900 px-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-700 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+          class="flex h-10 items-center justify-center gap-2 rounded-xl bg-brand-900 px-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Plus class="size-4" />
           Add
-        </button>
+        </Button>
       </form>
     </div>
 
@@ -139,16 +140,18 @@ onMounted(() => fetchCategories())
           <p class="truncate text-sm font-medium text-stone-800">{{ category.name }}</p>
           <p class="mt-0.5 truncate text-xs text-stone-400">{{ category.slug }}</p>
         </div>
-        <button
+        <Button
           v-if="category.id"
           type="button"
+          variant="ghost"
+          size="icon"
           :disabled="removingCategoryId === category.id"
           :aria-label="`Remove ${category.name}`"
           class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-stone-400 transition hover:bg-rose-50 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
           @click="requestRemoveCategory(category.id, category.name)"
         >
           <Trash2 class="size-4" />
-        </button>
+        </Button>
       </li>
     </ul>
   </section>
@@ -165,22 +168,24 @@ onMounted(() => fetchCategories())
       </DialogHeader>
       <DialogFooter>
         <DialogClose as-child>
-          <button
+          <Button
             type="button"
-            class="rounded-xl border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+            variant="outline"
+            class="rounded-xl border-stone-200 text-stone-700 hover:bg-stone-50"
             :disabled="removingCategoryId !== null"
           >
             Cancel
-          </button>
+          </Button>
         </DialogClose>
-        <button
+        <Button
           type="button"
-          class="rounded-xl bg-rose-700 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-800 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+          variant="destructive"
+          class="rounded-xl bg-rose-700 hover:bg-rose-800"
           :disabled="removingCategoryId !== null || !categoryToRemove"
           @click="confirmRemoveCategory"
         >
           {{ removingCategoryId ? 'Removing...' : 'Remove category' }}
-        </button>
+        </Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>

@@ -16,6 +16,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Button,
 } from '@/components'
 
 const currentPage = ref(1)
@@ -73,21 +74,23 @@ watch(
               class="h-10 w-full rounded-xl border border-stone-200 bg-white pl-9 pr-3 text-sm text-stone-700 outline-none placeholder:text-stone-400 focus:border-stone-400 focus:ring-4 focus:ring-stone-100"
             />
           </label>
-          <button
+          <Button
             type="button"
-            class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-stone-200 px-3.5 text-sm font-medium text-stone-600 transition hover:bg-stone-50"
+            variant="outline"
+            class="h-10 gap-2 rounded-xl border-stone-200 px-3.5 text-stone-600 hover:bg-stone-50"
           >
             <SlidersHorizontal class="size-4 text-stone-400" />
             Filters
-          </button>
+          </Button>
         </div>
-        <button
+        <Button
           type="button"
-          class="inline-flex h-10 items-center justify-center gap-2 rounded-xl px-3.5 text-sm font-medium text-stone-600 transition hover:bg-stone-50"
+          variant="ghost"
+          class="h-10 gap-2 rounded-xl px-3.5 text-stone-600 hover:bg-stone-50"
         >
           <Download class="size-4 text-stone-400" />
           Export
-        </button>
+        </Button>
       </div>
       <div
         class="flex flex-wrap items-center justify-between gap-2 border-y border-stone-100 bg-stone-50/60 px-5 py-3"

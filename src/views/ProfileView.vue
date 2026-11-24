@@ -296,7 +296,7 @@ const memberSince = computed(() => {
                   <Button
                     type="submit"
                     :disabled="isLoading || !profileV$.$anyDirty"
-                    class="bg-brand-900 py-5 transition-transform hover:cursor-pointer disabled:pointer-events-auto disabled:hover:cursor-not-allowed active:scale-[0.98] sm:px-8"
+                    class="bg-brand-900 py-5 transition-transform disabled:pointer-events-auto disabled:hover:cursor-not-allowed active:scale-[0.98] sm:px-8"
                   >
                     <Spinner v-if="isLoading" class="size-4" />
                     {{ isLoading ? 'Saving…' : 'Save changes' }}
@@ -345,19 +345,21 @@ const memberSince = computed(() => {
                           :aria-invalid="passwordV$.newPassword.$error"
                         />
                         <InputGroupAddon align="inline-end">
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="icon-xs"
                             :aria-label="
                               showNewPassword ? 'Hide new password' : 'Show new password'
                             "
                             :aria-pressed="showNewPassword"
                             :disabled="isChangingPassword"
-                            class="rounded-sm hover:cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 disabled:cursor-not-allowed"
+                            class="rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 disabled:cursor-not-allowed"
                             @click="showNewPassword = !showNewPassword"
                           >
                             <Eye v-if="!showNewPassword" aria-hidden="true" />
                             <EyeOff v-else aria-hidden="true" />
-                          </button>
+                          </Button>
                         </InputGroupAddon>
                       </InputGroup>
                       <PasswordStrengthIndicator :password="newPassword" />
@@ -389,8 +391,10 @@ const memberSince = computed(() => {
                           :aria-invalid="passwordV$.confirmPassword.$error"
                         />
                         <InputGroupAddon align="inline-end">
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="icon-xs"
                             :aria-label="
                               showConfirmPassword
                                 ? 'Hide confirm password'
@@ -398,12 +402,12 @@ const memberSince = computed(() => {
                             "
                             :aria-pressed="showConfirmPassword"
                             :disabled="isChangingPassword"
-                            class="rounded-sm hover:cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 disabled:cursor-not-allowed"
+                            class="rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 disabled:cursor-not-allowed"
                             @click="showConfirmPassword = !showConfirmPassword"
                           >
                             <Eye v-if="!showConfirmPassword" aria-hidden="true" />
                             <EyeOff v-else aria-hidden="true" />
-                          </button>
+                          </Button>
                         </InputGroupAddon>
                       </InputGroup>
                       <p class="mt-1.5 text-sm font-medium text-destructive" role="alert">
@@ -418,7 +422,7 @@ const memberSince = computed(() => {
                   <Button
                     type="submit"
                     :disabled="isChangingPassword"
-                    class="bg-brand-900 py-5 transition-transform hover:cursor-pointer active:scale-[0.98] sm:px-8"
+                    class="bg-brand-900 py-5 transition-transform active:scale-[0.98] sm:px-8"
                   >
                     <Spinner v-if="isChangingPassword" class="size-4" />
                     {{ isChangingPassword ? 'Changing password…' : 'Change password' }}

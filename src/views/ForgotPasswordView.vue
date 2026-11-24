@@ -74,7 +74,7 @@ const onSubmit = async () => {
 
       <Button
         type="submit"
-        class="w-full bg-brand-900 py-5 transition-transform hover:cursor-pointer active:scale-[0.85]"
+        class="w-full bg-brand-900 py-5 transition-transform active:scale-[0.85]"
       >
         <Spinner v-if="isRequestingPasswordReset" class="size-4" />
         {{ isRequestingPasswordReset ? 'Sending…' : 'Send recovery email' }}

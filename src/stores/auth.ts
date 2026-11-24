@@ -2,7 +2,7 @@ import type { User } from '@supabase/supabase-js'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { supabase } from '@/supabase'
-import { getAvatarUrl, uploadAvatar } from '@/services'
+import { getSignedImageUrl, removeImage, uploadImage } from '@/services'
 
 type Profile = {
   id: string
@@ -153,7 +153,9 @@ export const useAuthStore = defineStore('auth', () => {
       if (error) throw error
       user.value = data
       isAdmin.value = data.is_admin === true
-      avatarUrl.value = data.avatar_path ? await getAvatarUrl(data.avatar_path) : null
+      avatarUrl.value = data.avatar_path
+        ? await getSignedImageUrl('avatars', data.avatar_path)
+        : null
 
       return true
     } catch (updateError: unknown) {
@@ -184,7 +186,9 @@ export const useAuthStore = defineStore('auth', () => {
 
       user.value = data
       isAdmin.value = data?.is_admin === true
-      avatarUrl.value = data?.avatar_path ? await getAvatarUrl(data.avatar_path) : null
+      avatarUrl.value = data?.avatar_path
+        ? await getSignedImageUrl('avatars', data.avatar_path)
+        : null
       return true
     } catch (fetchError: unknown) {
       error.value = fetchError instanceof Error ? fetchError.message : 'Profile load failed'
@@ -204,7 +208,28 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      const avatarPath = await uploadAvatar(file, user.value?.avatar_path)
+      const avatarPath = await uploadImage(file, {
+        bucket: 'avatars',
+        folder: authUser.value.id,
+      })
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({ id: authUser.value.id, avatar_path: avatarPath }, { onConflict: 'id' })
+
+      if (profileError) {
+        await removeImage('avatars', avatarPath)
+        throw profileError
+      }
+
+      if (user.value?.avatar_path) {
+        try {
+          await removeImage('avatars', user.value.avatar_path)
+        } catch (deleteError) {
+          console.error('Could not delete previous avatar:', deleteError)
+        }
+      }
+
       user.value = {
         id: authUser.value.id,
         full_name: user.value?.full_name ?? null,
@@ -213,7 +238,7 @@ export const useAuthStore = defineStore('auth', () => {
         avatar_path: avatarPath,
         is_admin: user.value?.is_admin ?? false,
       }
-      avatarUrl.value = await getAvatarUrl(avatarPath)
+      avatarUrl.value = await getSignedImageUrl('avatars', avatarPath)
       return true
     } catch (uploadError: unknown) {
       error.value =

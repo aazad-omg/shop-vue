@@ -1,11 +1,18 @@
 <script setup lang="ts">
-import { createProduct, removeProductImage, updateProduct, uploadProductImage } from '@/services'
+import {
+  createProduct,
+  getPublicImageUrl,
+  removeImage,
+  updateProduct,
+  uploadImage,
+} from '@/services'
 import { generateSlug } from '@/helpers'
 import { useCategories, useProducts } from '@/composables'
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import {
+  Button,
   Select,
   SelectContent,
   SelectGroup,
@@ -172,9 +179,8 @@ const handleSubmit = async () => {
   try {
     let image = form.image
     if (imageFile.value) {
-      const uploadedImage = await uploadProductImage(imageFile.value)
-      uploadedImagePath = uploadedImage.path
-      image = uploadedImage.url
+      uploadedImagePath = await uploadImage(imageFile.value, { bucket: 'products' })
+      image = getPublicImageUrl('products', uploadedImagePath)
     }
 
     const productInput = {
@@ -201,7 +207,7 @@ const handleSubmit = async () => {
   } catch (error) {
     if (uploadedImagePath && !productSaved && props.mode === 'create') {
       try {
-        await removeProductImage(uploadedImagePath)
+        await removeImage('products', uploadedImagePath)
       } catch (cleanupError) {
         console.error('Could not remove uploaded product image:', cleanupError)
       }
@@ -266,13 +272,14 @@ const handleSubmit = async () => {
               </div>
               <div>
                 <p class="text-sm text-stone-600">Drag and drop an image here, or</p>
-                <button
+                <Button
                   type="button"
-                  class="mt-1 text-sm font-semibold text-stone-900 underline underline-offset-2 hover:cursor-pointer"
+                  variant="link"
+                  class="mt-1 h-auto px-0 py-0 text-sm text-stone-900"
                   @click="imageInput?.click()"
                 >
                   Choose file
-                </button>
+                </Button>
                 <p class="mt-1 text-xs text-stone-500">JPG, PNG, or WebP. Maximum size: 2 MB.</p>
               </div>
             </div>
@@ -476,13 +483,13 @@ const handleSubmit = async () => {
       >
         Cancel
       </RouterLink>
-      <button
+      <Button
         type="submit"
         :disabled="isSubmitting || productLoading"
-        class="rounded-xl bg-stone-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-700 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+        class="rounded-xl bg-stone-900 px-5 py-2.5 hover:bg-stone-700"
       >
         {{ isSubmitting ? 'Creating...' : mode === 'edit' ? 'Save changes' : 'Create product' }}
-      </button>
+      </Button>
     </div>
   </form>
 </template>
