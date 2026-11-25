@@ -11,6 +11,7 @@ import {
   required,
   sameAs,
 } from '@vuelidate/validators'
+import { htmlToText } from '@/helpers'
 
 export const nameRules = {
   required: helpers.withMessage('Please enter a name.', required),
@@ -86,14 +87,19 @@ export const productStockRules = {
   maxValue: helpers.withMessage('Stock quantity must not exceed 1,000,000.', maxValue(1_000_000)),
 }
 
+const textLength = (value: string) => htmlToText(value).trim().length
+
 export const productDescriptionRules = {
-  required: helpers.withMessage('Please enter a product description.', required),
+  required: helpers.withMessage(
+    'Please enter a product description.',
+    (value: string) => textLength(value) > 0,
+  ),
   minLength: helpers.withMessage(
     'Product description must be at least 10 characters.',
-    minLength(10),
+    (value: string) => textLength(value) >= 10,
   ),
   maxLength: helpers.withMessage(
     'Product description must not exceed 5000 characters.',
-    maxLength(5000),
+    (value: string) => textLength(value) <= 5000,
   ),
 }

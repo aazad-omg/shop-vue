@@ -7,6 +7,7 @@ import type { Product } from '@/types'
 import { NepaliRupee } from '@lucide/vue'
 import { ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { sanitizeHtml } from '@/helpers'
 
 const route = useRoute()
 // use reactively even while destructuring
@@ -129,9 +130,11 @@ const addCurrentProductToCart = () => {
             </Card>
             <section class="mt-8 max-w-prose border-t border-stone-200 pt-6">
               <h2 class="text-lg font-bold text-stone-900">About this item</h2>
-              <p class="mt-2 text-base leading-7 text-stone-600">
-                {{ currentProduct.description }}
-              </p>
+              <!-- eslint-disable-next-line vue/no-v-html -->
+              <div
+                class="rich-text mt-2 text-base leading-7 text-stone-600"
+                v-html="sanitizeHtml(currentProduct.description)"
+              />
             </section>
           </Card>
         </section>
@@ -167,10 +170,7 @@ const addCurrentProductToCart = () => {
       </template>
 
       <template v-else-if="isLoading">
-        <section
-          class="grid gap-4 md:grid-cols-2 md:gap-14"
-          aria-label="Loading product"
-        >
+        <section class="grid gap-4 md:grid-cols-2 md:gap-14" aria-label="Loading product">
           <div class="hidden aspect-square w-full animate-pulse rounded-md bg-gray-400 md:block" />
           <Card
             aria-hidden="true"

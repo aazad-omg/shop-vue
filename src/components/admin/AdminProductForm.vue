@@ -13,6 +13,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import {
   Button,
+  RichTextEditor,
   Select,
   SelectContent,
   SelectGroup,
@@ -478,13 +479,7 @@ const handleSubmit = async () => {
           <span class="mb-2 block text-sm font-medium text-stone-700">
             Full description <span class="text-red-700" aria-hidden="true">*</span>
           </span>
-          <textarea
-            v-model.trim="v$.description.$model"
-            rows="5"
-            placeholder="Describe the product and its key details..."
-            :aria-invalid="v$.description.$error"
-            class="w-full resize-y rounded-xl border border-stone-200 bg-white px-3.5 py-3 text-sm text-stone-800 outline-none transition placeholder:text-stone-400 focus:border-stone-400 focus:ring-4 focus:ring-stone-100"
-          ></textarea>
+          <RichTextEditor v-model="v$.description.$model" :invalid="v$.description.$error" />
           <p
             v-if="v$.description.$error"
             role="alert"
