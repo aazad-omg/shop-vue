@@ -9,6 +9,9 @@ import { onScopeDispose, ref, type MaybeRefOrGetter, toValue } from 'vue'
 // Handle composable parameters
 type ProductOptions = {
   searchTerm?: string
+  minPrice?: number
+  maxPrice?: number
+  brands?: string[]
   categoryId?: string
   limit?: number
   excludeId?: number
@@ -48,6 +51,9 @@ export const useProducts = (options: MaybeRefOrGetter<ProductOptions> = {}) => {
     try {
       const request = {
         searchTerm: refOptions.searchTerm,
+        minPrice: refOptions.minPrice,
+        maxPrice: refOptions.maxPrice,
+        brands: refOptions.brands,
         excludeId: refOptions.excludeId,
         from,
         to,

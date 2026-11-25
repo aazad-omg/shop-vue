@@ -29,6 +29,49 @@ export async function fetchCategories(signal?: AbortSignal): Promise<Category[]>
   return (response.data as Category[] | null) ?? []
 }
 
+export async function fetchProductBrands(
+  categoryId: string | undefined,
+  signal: AbortSignal,
+): Promise<string[]> {
+  const brands = new Set<string>()
+  const pageSize = 1000
+  let from = 0
+
+  while (true) {
+    let query = supabase.from('products').select(
+      `*,
+        product_categories!inner (
+          category_id,
+          categories (name)
+        )`,
+    )
+
+    if (categoryId !== undefined) {
+      query = query.eq('product_categories.category_id', categoryId)
+    }
+
+    const response = await query
+      .not('brand', 'is', null)
+      .order('brand', { ascending: true })
+      .order('id', { ascending: true })
+      .range(from, from + pageSize - 1)
+      .abortSignal(signal)
+
+    if (response.error) throw response.error
+
+    const rows = (response.data ?? []) as Array<{ brand?: string | null }>
+    for (const { brand } of rows) {
+      const normalizedBrand = brand?.trim()
+      if (normalizedBrand) brands.add(normalizedBrand)
+    }
+
+    if (rows.length < pageSize) break
+    from += pageSize
+  }
+
+  return Array.from(brands).sort((a, b) => a.localeCompare(b))
+}
+
 export async function createCategory(name: string, slug: string): Promise<Category> {
   const response = await supabase
     .from('categories')
@@ -90,7 +133,7 @@ export async function updateProduct(product: UpdateProductInput): Promise<void> 
 }
 
 async function fetchProductPage(
-  { searchTerm, excludeId, from, to, signal }: FetchProductsOptions,
+  { searchTerm, minPrice, maxPrice, brands, excludeId, from, to, signal }: FetchProductsOptions,
   categoryId?: string,
 ): Promise<{ products: Product[]; totalCount: number }> {
   let query = supabase.from('products').select(
@@ -107,6 +150,15 @@ async function fetchProductPage(
 
   if (normalizedSearchTerm) {
     query = query.ilike('name', `%${normalizedSearchTerm}%`)
+  }
+  if (minPrice !== undefined) {
+    query = query.gte('price', minPrice)
+  }
+  if (maxPrice !== undefined) {
+    query = query.lte('price', maxPrice)
+  }
+  if (brands?.length) {
+    query = query.in('brand', brands)
   }
   if (categoryId !== undefined) {
     query = query.eq('product_categories.category_id', categoryId)

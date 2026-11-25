@@ -63,6 +63,11 @@ export const productSubtitleRules = {
   maxLength: helpers.withMessage('Subtitle must not exceed 160 characters.', maxLength(160)),
 }
 
+export const productBrandRules = {
+  required: helpers.withMessage('Please enter a product brand.', required),
+  maxLength: helpers.withMessage('Brand must not exceed 80 characters.', maxLength(80)),
+}
+
 export const productCategoryRules = {
   required: helpers.withMessage('Please select at least one category.', required),
 }

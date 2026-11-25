@@ -11,6 +11,7 @@ export {
   createCategory,
   deleteCategory,
   fetchProductById,
+  fetchProductBrands,
   fetchProducts,
   fetchProductsByCategories,
 } from './products'
