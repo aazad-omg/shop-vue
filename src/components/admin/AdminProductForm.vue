@@ -25,6 +25,7 @@ import {
 import useVuelidate from '@vuelidate/core'
 import {
   productCategoryRules,
+  productBrandRules,
   productDescriptionRules,
   productNameRules,
   productPriceRules,
@@ -65,6 +66,7 @@ const form = reactive({
   name: '',
   slug: '',
   subtitle: '',
+  brand: '',
   categories: [] as string[],
   price: null as number | null,
   stock: null as number | null,
@@ -98,6 +100,7 @@ onMounted(async () => {
   form.image = product.image
   form.slug = product.slug
   form.subtitle = product.subtitle
+  form.brand = product.brand ?? ''
   form.price = product.price
   form.stock = product.stock ?? null
   form.is_active = product.is_active ?? true
@@ -157,6 +160,7 @@ const rules = {
   name: productNameRules,
   slug: productSlugRules,
   subtitle: productSubtitleRules,
+  brand: productBrandRules,
   categories: productCategoryRules,
   price: productPriceRules,
   stock: productStockRules,
@@ -188,6 +192,7 @@ const handleSubmit = async () => {
       name: form.name.trim(),
       slug: form.slug.trim(),
       subtitle: form.subtitle.trim(),
+      brand: form.brand.trim(),
       categories: form.categories,
       price: form.price,
       stock: form.stock,
@@ -301,6 +306,21 @@ const handleSubmit = async () => {
           />
           <p v-if="v$.name.$error" role="alert" class="mt-1.5 text-sm font-medium text-red-700">
             {{ v$.name.$errors[0]?.$message }}
+          </p>
+        </label>
+
+        <label class="block">
+          <span class="mb-2 block text-sm font-medium text-stone-700">
+            Brand <span class="text-red-700" aria-hidden="true">*</span>
+          </span>
+          <input
+            v-model.trim="v$.brand.$model"
+            placeholder="e.g. Apple"
+            :aria-invalid="v$.brand.$error"
+            class="h-11 w-full rounded-xl border border-stone-200 bg-white px-3.5 text-sm text-stone-800 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-100"
+          />
+          <p v-if="v$.brand.$error" role="alert" class="mt-1.5 text-sm font-medium text-red-700">
+            {{ v$.brand.$errors[0]?.$message }}
           </p>
         </label>
 

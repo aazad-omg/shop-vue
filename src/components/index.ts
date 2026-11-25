@@ -11,6 +11,7 @@ export { default as PasswordStrengthIndicator } from './PasswordStrengthIndicato
 export { default as ProductBanner } from './ProductBanner.vue'
 export { default as ProductCard } from './ProductCard.vue'
 export { default as ProductCardSkeleton } from './ProductCardSkeleton.vue'
+export { default as ProductFilters } from './ProductFilters.vue'
 export { default as ProductImageZoom } from './ProductImageZoom.vue'
 export { default as ProductSearch } from './ProductSearch.vue'
 export { default as ShopLogo } from './ShopLogo.vue'

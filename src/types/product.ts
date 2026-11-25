@@ -1,5 +1,8 @@
 export type FetchProductsOptions = {
   searchTerm?: string
+  minPrice?: number
+  maxPrice?: number
+  brands?: string[]
   excludeId?: number
   from: number
   to: number
@@ -16,6 +19,7 @@ export type Product = {
   name: string
   slug: string
   subtitle: string
+  brand?: string | null
   categories: string[]
   price: number
   description: string
@@ -28,6 +32,7 @@ export type CreateProductInput = {
   name: string
   slug: string
   subtitle: string
+  brand: string
   categories: string[]
   price: number
   stock: number
