@@ -6,7 +6,7 @@ import {
   updateProduct,
   uploadImage,
 } from '@/services'
-import { generateSlug } from '@/helpers'
+import { generateSlug, validateImageFile } from '@/helpers'
 import { useCategories, useProducts } from '@/composables'
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -119,12 +119,10 @@ const setImageFile = (file?: File) => {
   imageError.value = ''
   if (!file) return
 
-  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-    imageError.value = 'Please upload a JPG, PNG, or WebP image.'
-    return
-  }
-  if (file.size > 2 * 1024 * 1024) {
-    imageError.value = 'Image must be smaller than 2 MB.'
+  try {
+    validateImageFile(file)
+  } catch (error: unknown) {
+    imageError.value = error instanceof Error ? error.message : 'Invalid image file.'
     return
   }
 

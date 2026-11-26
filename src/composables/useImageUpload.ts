@@ -5,6 +5,8 @@ export function useImageUpload(upload: (file: File) => Promise<void>) {
   const previewUrl = ref<string | null>(null)
   const imageFailed = ref(false)
   const isUploading = ref(false)
+  const showCropDialog = ref(false)
+  const selectedFile = ref<File | null>(null)
 
   const revokePreview = () => {
     if (!previewUrl.value) return
@@ -22,17 +24,32 @@ export function useImageUpload(upload: (file: File) => Promise<void>) {
 
     revokePreview()
     previewUrl.value = URL.createObjectURL(file)
+    selectedFile.value = file
     imageFailed.value = false
+    showCropDialog.value = true
+    input.value = ''
+
+    return true
+  }
+
+  const onCropConfirm = async (croppedFile: File) => {
     isUploading.value = true
 
     try {
-      await upload(file)
+      await upload(croppedFile)
+      showCropDialog.value = false
       return true
     } finally {
       isUploading.value = false
       revokePreview()
-      input.value = ''
+      selectedFile.value = null
     }
+  }
+
+  const onCropCancel = () => {
+    showCropDialog.value = false
+    revokePreview()
+    selectedFile.value = null
   }
 
   onUnmounted(revokePreview)
@@ -43,5 +60,9 @@ export function useImageUpload(upload: (file: File) => Promise<void>) {
     imageFailed,
     isUploading,
     onFileSelected,
+    showCropDialog,
+    selectedFile,
+    onCropConfirm,
+    onCropCancel,
   }
 }

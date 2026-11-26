@@ -56,6 +56,9 @@ importers:
       cn:
         specifier: ^0.4.0
         version: 0.4.0
+      cropperjs:
+        specifier: ^1.7.0
+        version: 1.7.0
       dompurify:
         specifier: ^3.5.0
         version: 3.5.0
@@ -77,6 +80,9 @@ importers:
       vue:
         specifier: ^3.5.42
         version: 3.5.45(typescript@6.0.3)
+      vue-picture-cropper:
+        specifier: ^1.0.0
+        version: 1.0.0(cropperjs@1.7.0)(vue@3.5.45(typescript@6.0.3))
       vue-router:
         specifier: ^5.3.1
         version: 5.5.1(@vue/compiler-sfc@3.5.45)(pinia@4.1.0(@vue/devtools-api@8.2.1)(typescript@6.0.3)(vue@3.5.45(typescript@6.0.3)))(rolldown@1.2.19)(vite@8.3.8(@types/node@24.19.2)(jiti@2.7.0))(vue@3.5.45(typescript@6.0.3))
@@ -1534,6 +1540,9 @@ packages:
     resolution: {integrity: sha512-vePst2VLTSqPglW7Q98VwFpGiGpOHTyXIo81MO5VyLecA5zMbZw/P/V1vmwD1jksa2iJpn/YkDrJ3XhTfzUyhQ==}
     engines: {node: '>=18'}
 
+  cropperjs@1.7.0:
+    resolution: {integrity: sha512-AkGnZxr7xAJBa63ObXq5ZKLkh9c8wisC+Ym8VzIDn3KZ+6qRTbBnOl2w2dFOTMzLP5IcfOpEK9PICDywNXhncg==}
+
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
@@ -2738,6 +2747,12 @@ packages:
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
+
+  vue-picture-cropper@1.0.0:
+    resolution: {integrity: sha512-zp4OdK8SHqhvrLYqu+0XL9La8dHf0664RRjM5seWqohWyZ8c8pXOZ0KqEJAW5AT9hU6UBDrvZC5QzeTqCXl7ww==}
+    peerDependencies:
+      cropperjs: ^1
+      vue: '>=3.2.13'
 
   vue-router@5.5.1:
     resolution: {integrity: sha512-lUENd/QIhKd2HWACnXID3us0GWBnuOi3BwkTUzce2+4nfM/b3seV5saNURM9+wt48/qUxviotpcm7yFxC0U4qA==}
@@ -4229,6 +4244,8 @@ snapshots:
 
   copy-anything@4.1.5: {}
 
+  cropperjs@1.7.0: {}
+
   cross-spawn@7.0.6:
     dependencies:
       path-key: 3.1.1
@@ -5342,6 +5359,11 @@ snapshots:
       semver: 7.8.6
     transitivePeerDependencies:
       - supports-color
+
+  vue-picture-cropper@1.0.0(cropperjs@1.7.0)(vue@3.5.45(typescript@6.0.3)):
+    dependencies:
+      cropperjs: 1.7.0
+      vue: 3.5.45(typescript@6.0.3)
 
   vue-router@5.5.1(@vue/compiler-sfc@3.5.45)(pinia@4.1.0(@vue/devtools-api@8.2.1)(typescript@6.0.3)(vue@3.5.45(typescript@6.0.3)))(rolldown@1.2.19)(vite@8.3.8(@types/node@24.19.2)(jiti@2.7.0))(vue@3.5.45(typescript@6.0.3)):
     dependencies:
