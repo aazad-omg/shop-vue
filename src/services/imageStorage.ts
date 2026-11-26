@@ -1,7 +1,5 @@
 import { supabase } from '@/supabase'
-
-const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-const maxFileSize = 2 * 1024 * 1024
+import { validateImageFile } from '@/helpers'
 
 type UploadImageOptions = {
   bucket: string
@@ -9,13 +7,7 @@ type UploadImageOptions = {
 }
 
 export async function uploadImage(file: File, { bucket, folder }: UploadImageOptions) {
-  if (!allowedTypes.includes(file.type)) {
-    throw new Error('Please upload a JPG, PNG, or WebP image.')
-  }
-
-  if (file.size > maxFileSize) {
-    throw new Error('Image must be smaller than 2 MB.')
-  }
+  validateImageFile(file)
 
   const extension = file.type.split('/')[1]
   const filename = `${crypto.randomUUID()}.${extension}`
@@ -43,9 +35,7 @@ export function getPublicImageUrl(bucket: string, path: string) {
 }
 
 export async function getSignedImageUrl(bucket: string, path: string, expiresIn = 3600) {
-  const { data, error } = await supabase.storage
-    .from(bucket)
-    .createSignedUrl(path, expiresIn)
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn)
 
   if (error) throw error
 

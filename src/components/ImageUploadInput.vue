@@ -4,6 +4,7 @@ import { Pencil } from '@lucide/vue'
 import { useImageUpload } from '@/composables'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui'
 import { Button } from '@/components'
+import ImageCropDialog from './ImageCropDialog.vue'
 
 const props = defineProps<{
   src: string | null
@@ -16,10 +17,18 @@ const emit = defineEmits<{
   'upload-error': [message: string]
 }>()
 
-const { inputRef, previewUrl, imageFailed, isUploading, onFileSelected } = useImageUpload(
-  props.upload,
-)
-const visibleImageUrl = computed(() => (imageFailed.value ? null : (previewUrl.value ?? props.src)))
+const {
+  inputRef,
+  previewUrl,
+  imageFailed,
+  isUploading,
+  onFileSelected,
+  showCropDialog,
+  onCropConfirm,
+  onCropCancel,
+} = useImageUpload(props.upload)
+
+const visibleImageUrl = computed(() => (imageFailed.value ? null : previewUrl.value ?? props.src))
 
 watch(
   () => props.src,
@@ -30,15 +39,37 @@ watch(
 
 const handleFileSelected = async (event: Event) => {
   try {
-    if (await onFileSelected(event)) emit('upload-success')
+    await onFileSelected(event)
   } catch (error: unknown) {
     emit('upload-error', error instanceof Error ? error.message : 'Profile picture upload failed')
   }
+}
+
+const handleCropConfirm = async (croppedFile: File) => {
+  try {
+    if (await onCropConfirm(croppedFile)) {
+      emit('upload-success')
+    }
+  } catch (error: unknown) {
+    emit('upload-error', error instanceof Error ? error.message : 'Profile picture upload failed')
+  }
+}
+
+const handleCropCancel = () => {
+  onCropCancel()
 }
 </script>
 
 <template>
   <div class="flex shrink-0 flex-col items-center gap-1">
+    <!-- Crop Dialog -->
+    <ImageCropDialog
+      :open="showCropDialog"
+      :image-src="previewUrl || ''"
+      @confirm="handleCropConfirm"
+      @cancel="handleCropCancel"
+    />
+
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger>

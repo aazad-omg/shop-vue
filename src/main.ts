@@ -7,6 +7,10 @@ import router from './router'
 import '@/assets/styles/main.css'
 import 'vue-sonner/style.css'
 
+// Import Cropper.js styles and VuePictureCropper styles
+import 'cropperjs/dist/cropper.css'
+import 'vue-picture-cropper/style.css'
+
 const app = createApp(App)
 const pinia = createPinia()
 
